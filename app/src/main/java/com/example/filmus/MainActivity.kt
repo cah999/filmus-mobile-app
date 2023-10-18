@@ -29,6 +29,7 @@ import com.example.filmus.ui.screens.LoginScreen
 import com.example.filmus.ui.screens.WelcomeScreen
 import com.example.filmus.ui.theme.FilmusTheme
 import com.example.filmus.viewmodel.login.LoginViewModel
+import com.example.filmus.viewmodel.registration.RegistrationViewModel
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -38,6 +39,7 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             val appNavigator = AppNavigator()
             val loginViewModel: LoginViewModel by viewModels()
+            val registrationViewModel: RegistrationViewModel by viewModels()
             FilmusTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -52,7 +54,12 @@ class MainActivity : ComponentActivity() {
                         if (isLoading) {
                             LoadingScreen()
                         } else {
-                            AppNavigation(navController, appNavigator, loginViewModel)
+                            AppNavigation(
+                                navController,
+                                appNavigator,
+                                loginViewModel,
+                                registrationViewModel
+                            )
                         }
                     }
                 }

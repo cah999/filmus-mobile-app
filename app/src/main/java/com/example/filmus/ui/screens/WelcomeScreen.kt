@@ -34,7 +34,7 @@ fun WelcomeScreen(navController: NavHostController) {
             Text(text = "Login")
         }
         Button(
-            onClick = { /*TODO*/ },
+            onClick = { navController.navigate(Screen.Registration.route) },
             modifier = Modifier.padding(8.dp)
         ) {
             Text(text = "Register")

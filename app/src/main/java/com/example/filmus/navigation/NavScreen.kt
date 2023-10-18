@@ -12,6 +12,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector?
     object Welcome : Screen("welcome", "Welcome", Icons.Default.Home)
     object Login : Screen("login", "Login", Icons.Default.Person)
     object Registration : Screen("registration", "Registration", Icons.Default.Person)
+    object RegistrationPwd : Screen("registrationPwd", "RegistrationPwd", Icons.Default.Person)
     object Main : Screen("main", "Main", Icons.Default.Home)
     object Movie : Screen("movie", "Movie", Icons.Default.Search)
 

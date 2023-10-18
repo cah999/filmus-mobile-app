@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.NavHostController
 import com.example.filmus.api.ApiService
 import com.example.filmus.ui.screens.LoginScreen
+import com.example.filmus.ui.screens.RegistrationPwdScreen
 import com.example.filmus.ui.screens.RegistrationScreen
 import com.example.filmus.ui.screens.WelcomeScreen
 import com.example.filmus.viewmodel.login.LoginViewModel
@@ -30,6 +31,9 @@ fun AppNavigation(
         }
         composable(Screen.Registration.route) {
             RegistrationScreen(navController = navController, viewModel = registrationViewModel)
+        }
+        composable(Screen.RegistrationPwd.route) {
+            RegistrationPwdScreen(navController = navController, viewModel = registrationViewModel)
         }
     }
 }
