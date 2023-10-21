@@ -88,6 +88,7 @@ fun LoginScreen(
                 onValueChange = { username = it },
                 textFieldValue = username,
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                isPassword = false
             )
             Spacer(modifier = Modifier.height(15.dp))
             Text(
@@ -105,6 +106,7 @@ fun LoginScreen(
                 onValueChange = { password = it },
                 textFieldValue = password,
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                isPassword = true
             )
 
             Spacer(modifier = Modifier.height(20.dp))
