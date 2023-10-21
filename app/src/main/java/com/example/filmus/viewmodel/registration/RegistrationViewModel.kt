@@ -1,42 +1,42 @@
 package com.example.filmus.viewmodel.registration
 
-import android.text.format.DateFormat
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.filmus.api.RegistrationRequest
 import com.example.filmus.api.createApiService
-import com.example.filmus.domain.model.LoginResult
-import com.example.filmus.domain.model.LoginUseCase
-import com.example.filmus.repository.ApiLoginRepository
+import com.example.filmus.domain.registration.RegistrationResult
+import com.example.filmus.domain.registration.RegistrationUseCase
+import com.example.filmus.repository.registration.RegistrationRepositoryImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
-data class RegistrationData(
-    val username: String,
-    val gender: Boolean,
-    val login: String,
-    val email: String,
-    val birthDate: String,
-    val password: String
-)
-
+// todo почитать про state, mvi
 class RegistrationViewModel() : ViewModel() {
-    private var registrationData: RegistrationData? = null
+    val username = mutableStateOf("")
+    val gender = mutableStateOf(false)
+    val login = mutableStateOf("")
+    val email = mutableStateOf("")
+    val birthDate = mutableStateOf("")
+    val password = mutableStateOf("")
+    val passwordRepeat = mutableStateOf("")
 
-    fun setRegistrationData(data: RegistrationData) {
-        registrationData = data
-    }
-
-    fun getRegistrationData(): RegistrationData? {
-        return registrationData
-    }
-
-    fun register(username: String, password: String, onResult: (LoginResult) -> Unit) {
+    fun register(onResult: (RegistrationResult) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             val apiService = createApiService()
-            val loginRepository = ApiLoginRepository(apiService)
-            val loginUseCase = LoginUseCase(loginRepository)
-            val result = loginUseCase.login(username, password)
+            val registrationRepository = RegistrationRepositoryImpl(apiService)
+            val registrationUseCase = RegistrationUseCase(registrationRepository)
+            val result = registrationUseCase.register(
+                RegistrationRequest(
+                    username = username.value,
+                    name = login.value,
+                    password = password.value,
+                    email = email.value,
+                    birthDate = birthDate.value,
+                    gender = gender.value
+                )
+            )
             onResult(result)
         }
     }

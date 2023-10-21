@@ -1,5 +1,6 @@
 package com.example.filmus.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,13 +12,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.filmus.domain.registration.RegistrationResult
 import com.example.filmus.navigation.Screen
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
 
@@ -27,8 +27,8 @@ fun RegistrationPwdScreen(
     navController: NavController,
     viewModel: RegistrationViewModel
 ) {
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    var password by viewModel.password
+    var confirmPassword by viewModel.passwordRepeat
 
     Column(
         modifier = Modifier
@@ -58,6 +58,19 @@ fun RegistrationPwdScreen(
 
         Button(
             onClick = {
+                viewModel.register { result ->
+                    when (result) {
+                        is RegistrationResult.Success -> {
+                            Log.d("RegistrationPwdScreen", "Registration success")
+                            navController.navigate(Screen.Welcome.route)
+                        }
+
+                        is RegistrationResult.Error -> {
+                            Log.d("RegistrationPwdScreen", "Registration error")
+                            Log.d("RegistrationPwdScreen", "$result")
+                        }
+                    }
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()

@@ -8,8 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.filmus.api.ApiService
-import com.example.filmus.domain.model.LoginResult
+import com.example.filmus.domain.login.LoginResult
 import com.example.filmus.navigation.Screen
 import com.example.filmus.viewmodel.login.LoginViewModel
 
