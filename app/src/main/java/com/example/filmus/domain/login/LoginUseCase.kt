@@ -1,6 +1,6 @@
-package com.example.filmus.domain.model
+package com.example.filmus.domain.login
 
-import com.example.filmus.repository.LoginRepository
+import com.example.filmus.repository.login.LoginRepository
 
 
 class LoginUseCase(private val loginRepository: LoginRepository) {

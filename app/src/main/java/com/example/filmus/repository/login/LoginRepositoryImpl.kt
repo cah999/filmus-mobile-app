@@ -1,29 +1,14 @@
-package com.example.filmus.repository
+package com.example.filmus.repository.login
 
 import android.util.Log
 import com.example.filmus.api.ApiService
 import com.example.filmus.api.LoginRequest
-import com.example.filmus.domain.model.LoginResult
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.example.filmus.domain.login.LoginResult
+import com.example.filmus.domain.login.MoshiProvider
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 
-object MoshiProvider {
-    val moshi: Moshi = Moshi.Builder()
-        .addLast(KotlinJsonAdapterFactory())
-        .build()
-
-    val loginRequestAdapter: JsonAdapter<LoginRequest> = moshi.adapter(LoginRequest::class.java)
-}
-
-interface LoginRepository {
-    suspend fun login(username: String, password: String): LoginResult
-}
-
-
-class ApiLoginRepository(private val apiService: ApiService) : LoginRepository {
+class LoginRepositoryImpl(private val apiService: ApiService) : LoginRepository {
     override suspend fun login(username: String, password: String): LoginResult {
         try {
             Log.d("LoginRepository", "login: $username, $password")
