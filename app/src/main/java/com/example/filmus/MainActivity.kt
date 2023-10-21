@@ -31,7 +31,6 @@ class MainActivity : ComponentActivity() {
             val loginViewModel: LoginViewModel by viewModels()
             val registrationViewModel: RegistrationViewModel by viewModels()
             FilmusTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
