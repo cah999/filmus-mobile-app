@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 // todo почитать про state, mvi
 class RegistrationViewModel() : ViewModel() {
     val name = mutableStateOf("")
-    val gender = mutableStateOf(false)
+    val gender = mutableStateOf(true)
     val login = mutableStateOf("")
     val email = mutableStateOf("")
     val birthDate = mutableStateOf("")

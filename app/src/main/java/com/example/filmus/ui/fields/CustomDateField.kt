@@ -1,6 +1,5 @@
 package com.example.filmus.ui.fields
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -116,7 +115,6 @@ fun CustomDateField(
                 selectedDate = selectedDate.value,
             ) { newDate ->
                 selectedDate.value = newDate
-                Log.d("Date", newDate.format(DateTimeFormatter.ofPattern("M/d/[uuuu]"))).toString()
                 onValueChange(newDate.format(DateTimeFormatter.ofPattern("ddMM[uuuu]"))).toString()
             },
         )
