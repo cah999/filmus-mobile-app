@@ -20,7 +20,6 @@ import com.example.filmus.ui.screens.LoadingScreen
 import com.example.filmus.ui.theme.FilmusTheme
 import com.example.filmus.viewmodel.login.LoginViewModel
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
-import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +35,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     LaunchedEffect(true) {
-                        delay(2000)
+//                        delay(2000)
                         isLoading = false
                     }
                     Crossfade(targetState = isLoading, label = "") { isLoading ->

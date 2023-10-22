@@ -17,7 +17,7 @@ data class LoginRequest(
 )
 
 data class RegistrationRequest(
-    @Json(name = "username") val username: String,
+    @Json(name = "username") val login: String,
     @Json(name = "name") val name: String,
     @Json(name = "password") val password: String,
     @Json(name = "email") val email: String,
