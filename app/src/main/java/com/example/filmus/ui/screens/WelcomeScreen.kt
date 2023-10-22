@@ -81,7 +81,6 @@ fun WelcomeScreen(navController: NavHostController) {
             colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                 containerColor = Color(0xFFFC315E),
             ),
-            contentPadding = PaddingValues(start = 15.dp, top = 12.dp, end = 15.dp, bottom = 12.dp)
 
 
         ) {
@@ -109,7 +108,6 @@ fun WelcomeScreen(navController: NavHostController) {
             colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF292929)
             ),
-            contentPadding = PaddingValues(start = 15.dp, top = 12.dp, end = 15.dp, bottom = 12.dp)
         ) {
             Text(
                 text = "Войти",
