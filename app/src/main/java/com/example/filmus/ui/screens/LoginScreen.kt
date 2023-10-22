@@ -129,9 +129,6 @@ fun LoginScreen(
                     .width(328.dp)
                     .height(42.dp)
                     .alpha(if (username.isNotEmpty() && password.isNotEmpty()) 1f else 0.45f),
-                contentPadding = PaddingValues(
-                    start = 15.dp, top = 12.dp, end = 15.dp, bottom = 12.dp
-                ),
                 shape = RoundedCornerShape(size = 10.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFFC315E),
