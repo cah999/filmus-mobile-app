@@ -7,8 +7,7 @@ import com.example.filmus.api.RegistrationRequest
 import com.example.filmus.api.createApiService
 import com.example.filmus.domain.registration.RegistrationResult
 import com.example.filmus.domain.registration.RegistrationUseCase
-import com.example.filmus.repository.registration.RegistrationRepositoryImpl
-import kotlinx.coroutines.Dispatchers
+import com.example.filmus.repository.registration.RegistrationRepository
 import kotlinx.coroutines.launch
 
 
@@ -23,9 +22,9 @@ class RegistrationViewModel() : ViewModel() {
     val passwordRepeat = mutableStateOf("")
 
     fun register(onResult: (RegistrationResult) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch() {
             val apiService = createApiService()
-            val registrationRepository = RegistrationRepositoryImpl(apiService)
+            val registrationRepository = RegistrationRepository(apiService)
             val registrationUseCase = RegistrationUseCase(registrationRepository)
             val result = registrationUseCase.register(
                 RegistrationRequest(

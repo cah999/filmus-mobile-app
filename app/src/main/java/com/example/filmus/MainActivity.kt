@@ -1,9 +1,9 @@
 package com.example.filmus
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.example.filmus.domain.login.TokenManager
 import com.example.filmus.navigation.AppNavigation
 import com.example.filmus.navigation.AppNavigator
 import com.example.filmus.ui.screens.LoadingScreen
@@ -27,8 +28,18 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             val appNavigator = AppNavigator()
-            val loginViewModel: LoginViewModel by viewModels()
-            val registrationViewModel: RegistrationViewModel by viewModels()
+            val tokenManager = TokenManager(this)
+            LaunchedEffect(true) {
+                val token = tokenManager.getToken()
+                Log.d("MainActivity", "token: ${tokenManager.getToken()}")
+                if (token != null) {
+                    Log.d("MainActivity", "yep token: $token")
+                } else {
+                    Log.d("MainActivity", "token: $token")
+                }
+            }
+            val loginViewModel = LoginViewModel(tokenManager)
+            val registrationViewModel = RegistrationViewModel()
             FilmusTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
