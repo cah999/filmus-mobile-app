@@ -1,21 +1,16 @@
 package com.example.filmus.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.filmus.R
 
-sealed class Screen(val route: String, val title: String, val icon: ImageVector? = null) {
+sealed class Screen(val route: String, val title: String, val imageResource: Int? = null) {
     object Welcome : Screen("welcome", "Welcome", null)
     object Login : Screen("login", "Login", null)
     object Registration : Screen("registration", "Registration", null)
     object RegistrationPwd : Screen("registrationPwd", "RegistrationPwd", null)
-    object Main : Screen("main", "Main", null)
-    object Movie : Screen("movie", "Movie", Icons.Default.Search)
+    object Main : Screen("main", "Главная", R.drawable.back)
+    object Movie : Screen("movie", "Movie", null)
 
-    object Favorite : Screen("favorite", "Favorite", Icons.Default.Notifications)
+    object Favorite : Screen("favorite", "Любимое", R.drawable.back)
 
-    object Profile : Screen("profile", "Profile", Icons.Default.Person)
-
+    object Profile : Screen("profile", "Профиль", R.drawable.back)
 }
