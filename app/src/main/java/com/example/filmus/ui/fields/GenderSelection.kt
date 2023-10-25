@@ -12,6 +12,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,11 +27,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.filmus.R
-import com.example.filmus.viewmodel.registration.RegistrationViewModel
 
 @Composable
-fun GenderSelection(viewModel: RegistrationViewModel) {
-    var isMale by viewModel.gender
+fun GenderSelection(defaultIsMale: Boolean, onGenderSelected: (Boolean) -> Unit) {
+    var isMale by remember { mutableStateOf(defaultIsMale) }
 
     Row(
         modifier = Modifier
@@ -45,6 +46,7 @@ fun GenderSelection(viewModel: RegistrationViewModel) {
         Button(
             onClick = {
                 isMale = true
+                onGenderSelected(true)
             },
             modifier = Modifier
                 .width(163.dp)
@@ -56,7 +58,7 @@ fun GenderSelection(viewModel: RegistrationViewModel) {
             shape = RoundedCornerShape(size = 7.dp)
         ) {
             Text(
-                text = "Мужчина",
+                "Мужчина",
                 style = TextStyle(
                     fontSize = 14.sp,
                     fontFamily = FontFamily(Font(R.font.inter)),
@@ -70,6 +72,7 @@ fun GenderSelection(viewModel: RegistrationViewModel) {
         Button(
             onClick = {
                 isMale = false
+                onGenderSelected(false)
             },
             modifier = Modifier
                 .width(163.dp)
@@ -92,6 +95,7 @@ fun GenderSelection(viewModel: RegistrationViewModel) {
         }
     }
 }
+
 
 @Preview
 @Composable
