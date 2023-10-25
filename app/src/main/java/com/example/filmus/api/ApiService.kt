@@ -24,7 +24,7 @@ data class RegistrationRequest(
     @Json(name = "password") val password: String,
     @Json(name = "email") val email: String,
     @Json(name = "birthDate") val birthDate: String,
-    @Json(name = "gender") val gender: Boolean
+    @Json(name = "gender") val gender: Int
 )
 
 data class LoginResponse(

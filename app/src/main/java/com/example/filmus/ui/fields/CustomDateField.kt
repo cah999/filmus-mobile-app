@@ -34,6 +34,7 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.text.isDigitsOnly
 import com.example.filmus.R
 import com.maxkeppeker.sheets.core.models.base.rememberUseCaseState
 import com.maxkeppeler.sheets.calendar.CalendarDialog
@@ -64,7 +65,7 @@ fun CustomDateField(
         .fillMaxWidth(),
         value = textFieldValue,
         onValueChange = {
-            if (it.length <= 8) onValueChange(it)
+            if (it.length <= 8 && it.isDigitsOnly()) onValueChange(it)
         },
         textStyle = TextStyle(
             fontSize = 15.sp,

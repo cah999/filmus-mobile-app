@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.filmus.domain.login.TokenManager
+import com.example.filmus.domain.registration.ValidateRegistrationDataUseCase
 import com.example.filmus.navigation.AppNavigation
 import com.example.filmus.navigation.AppNavigator
 import com.example.filmus.ui.screens.LoadingScreen
@@ -39,7 +40,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
             val loginViewModel = LoginViewModel(tokenManager)
-            val registrationViewModel = RegistrationViewModel()
+            val registrationViewModel =
+                RegistrationViewModel(ValidateRegistrationDataUseCase(), tokenManager)
             FilmusTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),

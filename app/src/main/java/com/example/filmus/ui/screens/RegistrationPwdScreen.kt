@@ -1,6 +1,7 @@
 package com.example.filmus.ui.screens
 
 import android.util.Log
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,10 +22,13 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.filmus.R
+import com.example.filmus.domain.login.UIState
 import com.example.filmus.domain.registration.RegistrationResult
 import com.example.filmus.navigation.Screen
 import com.example.filmus.ui.fields.CustomTextField
@@ -56,6 +61,18 @@ fun RegistrationPwdScreen(
     var confirmPassword by viewModel.passwordRepeat
     val buttonEnabled =
         password.isNotEmpty() && confirmPassword.isNotEmpty() && password == confirmPassword
+    var state by remember { mutableStateOf(UIState.DEFAULT) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    val outlinedColor by animateColorAsState(
+        targetValue = if (state == UIState.ERROR) Color(0xFFE64646) else Color(0xFF909499),
+        label = ""
+    )
+    val containerColor by animateColorAsState(
+        targetValue = if (state == UIState.ERROR) Color(0x1AE64646) else Color.Transparent,
+        label = ""
+    )
+
     Scaffold(topBar = {
         CenterAlignedTopAppBar(title = {
             Image(
@@ -106,9 +123,14 @@ fun RegistrationPwdScreen(
 
 
             CustomTextField(
-                onValueChange = { password = it },
+                onValueChange = {
+                    if (state == UIState.ERROR) state = UIState.DEFAULT
+                    password = it
+                },
                 textFieldValue = password,
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                outlinedColor = outlinedColor,
+                containerColor = containerColor,
                 isPassword = true
             )
             Spacer(modifier = Modifier.height(15.dp))
@@ -124,28 +146,60 @@ fun RegistrationPwdScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             CustomTextField(
-                onValueChange = { confirmPassword = it },
+                onValueChange = {
+                    if (state == UIState.ERROR) state = UIState.DEFAULT
+                    confirmPassword = it
+                },
                 textFieldValue = confirmPassword,
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                outlinedColor = outlinedColor,
+                containerColor = containerColor,
                 isPassword = true
             )
-
+            if (state == UIState.ERROR) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = errorMessage, style = TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFFE64646),
+                    ), modifier = Modifier.alpha(1f)
+                )
+            } else if (state == UIState.LOADING) {
+                Spacer(modifier = Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp),
+                    color = Color(0xFFFC315E),
+                    trackColor = Color(0x1AFC315E)
+                )
+            }
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
                 onClick = {
-                    viewModel.register { result ->
-                        when (result) {
-                            is RegistrationResult.Success -> {
-                                Log.d("RegistrationPwdScreen", "Registration success")
-                                navController.navigate(Screen.Welcome.route)
-                            }
+                    state = UIState.LOADING
+                    val passwordValidation = viewModel.validatePassword()
+                    if (passwordValidation.isValid) {
+                        state = UIState.LOADING
+                        viewModel.register { result ->
+                            when (result) {
+                                is RegistrationResult.Success -> {
+                                    Log.d("RegistrationPwdScreen", "Registration success")
+                                    navController.navigate(Screen.Welcome.route)
+                                }
 
-                            is RegistrationResult.Error -> {
-                                Log.d("RegistrationPwdScreen", "Registration error")
-                                Log.d("RegistrationPwdScreen", "$result")
+                                is RegistrationResult.Error -> {
+                                    Log.d("RegistrationPwdScreen", "Registration error")
+                                    Log.d("RegistrationPwdScreen", "$result")
+                                }
                             }
                         }
+                    } else {
+                        errorMessage = passwordValidation.errorMessage
+                        state = UIState.ERROR
                     }
                 },
                 modifier = Modifier

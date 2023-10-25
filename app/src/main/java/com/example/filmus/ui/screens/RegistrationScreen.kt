@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -35,7 +36,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -58,6 +58,11 @@ fun RegistrationScreen(
     val buttonEnabled =
         name.isNotEmpty() && login.isNotEmpty() && email.isNotEmpty() && birthDate.isNotEmpty()
 
+    val nameValidationState = viewModel.validationStates.value.getOrNull(0)
+    val loginValidationState = viewModel.validationStates.value.getOrNull(1)
+    val emailValidationState = viewModel.validationStates.value.getOrNull(2)
+    val birthDateValidationState = viewModel.validationStates.value.getOrNull(3)
+
 
     Scaffold(topBar = {
         CenterAlignedTopAppBar(title = {
@@ -70,213 +75,267 @@ fun RegistrationScreen(
                     painter = painterResource(id = R.drawable.back), contentDescription = null
                 )
             }
-        })
-    },
-        containerColor = Color(0xFF1D1D1D),
-        content = { it ->
-            Column(
+        }, colors = topAppBarColors(
+            containerColor = Color.Transparent
+        )
+        )
+    }, containerColor = Color(0xFF1D1D1D), content = { it ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+                .padding(start = 16.dp, end = 16.dp),
+        ) {
+            Text(
+                text = "Регистрация",
+
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    lineHeight = 24.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(700),
+                    color = Color(0xFFFFFFFF),
+                ), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
+
+            )
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            Text(
+                text = "Имя",
+
+                style = TextStyle(
+                    fontSize = 15.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(500),
+                    color = Color(0xFFFFFFFF),
+                    textAlign = TextAlign.Center,
+                )
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+
+            CustomTextField(
+                onValueChange = {
+                    if (nameValidationState != null && !nameValidationState.isValid) {
+                        nameValidationState.isValid = true
+                    }
+                    name = it
+                },
+                textFieldValue = name,
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                containerColor = Color(viewModel.getContainerColor(nameValidationState)),
+                outlinedColor = Color(viewModel.getOutlineColor(nameValidationState)),
+                isPassword = false
+            )
+
+            if (nameValidationState != null && !nameValidationState.isValid) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = nameValidationState.errorMessage, style = TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFFE64646),
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.height(15.dp))
+            Text(
+                text = "Пол",
+
+                style = TextStyle(
+                    fontSize = 15.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(500),
+                    color = Color(0xFFFFFFFF),
+                    textAlign = TextAlign.Center,
+                )
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            GenderSelection(viewModel)
+            Spacer(modifier = Modifier.height(15.dp))
+            Text(
+                text = "Логин", style = TextStyle(
+                    fontSize = 15.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(500),
+                    color = Color(0xFFFFFFFF),
+                    textAlign = TextAlign.Center,
+                )
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            CustomTextField(
+                onValueChange = {
+                    if (loginValidationState != null && !loginValidationState.isValid) {
+                        loginValidationState.isValid = true
+                    }
+                    login = it
+                },
+                textFieldValue = login,
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                containerColor = Color(viewModel.getContainerColor(loginValidationState)),
+                outlinedColor = Color(viewModel.getOutlineColor(loginValidationState)),
+                isPassword = false
+            )
+
+            if (loginValidationState != null && !loginValidationState.isValid) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = loginValidationState.errorMessage, style = TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFFE64646),
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.height(15.dp))
+            Text(
+                text = "Электронная почта", style = TextStyle(
+                    fontSize = 15.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(500),
+                    color = Color(0xFFFFFFFF),
+                    textAlign = TextAlign.Center,
+                )
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            CustomTextField(
+                onValueChange = {
+                    if (emailValidationState != null && !emailValidationState.isValid) {
+                        emailValidationState.isValid = true
+                    }
+                    email = it
+                },
+                textFieldValue = email,
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                containerColor = Color(viewModel.getContainerColor(emailValidationState)),
+                outlinedColor = Color(viewModel.getOutlineColor(emailValidationState)),
+                isPassword = false
+            )
+
+            if (emailValidationState != null && !emailValidationState.isValid) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = emailValidationState.errorMessage, style = TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFFE64646),
+                    )
+                )
+            }
+
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            Text(
+                text = "Дата рождения", style = TextStyle(
+                    fontSize = 15.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(500),
+                    color = Color(0xFFFFFFFF),
+                    textAlign = TextAlign.Center,
+                )
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            CustomDateField(
+                onValueChange = {
+                    if (birthDateValidationState != null && !birthDateValidationState.isValid) {
+                        birthDateValidationState.isValid = true
+                    }
+                    birthDate = it
+                },
+                textFieldValue = birthDate,
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                containerColor = Color(viewModel.getContainerColor(birthDateValidationState)),
+                outlinedColor = Color(viewModel.getOutlineColor(birthDateValidationState)),
+            )
+            if (birthDateValidationState != null && !birthDateValidationState.isValid) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = birthDateValidationState.errorMessage, style = TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFFE64646),
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.height(15.dp))
+
+            Button(
+                onClick = {
+                    viewModel.validateRegistrationData()
+                    val validationStateList = viewModel.validationStates.value
+
+                    val isDataValid = validationStateList.all { it.isValid }
+
+                    if (isDataValid) {
+                        navController.navigate(Screen.RegistrationPwd.route)
+                    }
+                },
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(it)
-                    .padding(start = 16.dp, end = 16.dp),
+                    .width(328.dp)
+                    .height(42.dp)
+                    .alpha(
+                        if (buttonEnabled) 1f else 0.45f
+                    ),
+                shape = RoundedCornerShape(size = 10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFC315E),
+                    disabledContainerColor = Color(0xFFFC315E),
+                ),
+                enabled = buttonEnabled,
+
+                ) {
+                Text(
+                    text = "Продолжить",
+
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(600),
+                        color = Color(0xFFFFFFFF),
+                        textAlign = TextAlign.Center,
+                    ),
+                )
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
             ) {
                 Text(
-                    text = "Регистрация",
-
+                    text = "Уже есть аккаунт? ", style = TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(500),
+                        color = Color(0xFFC4C8CC),
+                        textAlign = TextAlign.Center,
+                    )
+                )
+                Text(
+                    text = "Войдите",
                     style = TextStyle(
-                        fontSize = 20.sp,
-                        lineHeight = 24.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(700),
-                        color = Color(0xFFFFFFFF),
-                    ), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
-
-                )
-
-                Spacer(modifier = Modifier.height(15.dp))
-
-                Text(
-                    text = "Имя",
-
-                    style = TextStyle(
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         fontFamily = FontFamily(Font(R.font.inter)),
                         fontWeight = FontWeight(500),
-                        color = Color(0xFFFFFFFF),
+                        color = Color(0xFFFC315E),
                         textAlign = TextAlign.Center,
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-
-                CustomTextField(
-                    onValueChange = { name = it },
-                    textFieldValue = name,
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-                    isPassword = false
-                )
-                Spacer(modifier = Modifier.height(15.dp))
-                Text(
-                    text = "Пол",
-
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(500),
-                        color = Color(0xFFFFFFFF),
-                        textAlign = TextAlign.Center,
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                GenderSelection(viewModel)
-                Spacer(modifier = Modifier.height(15.dp))
-                Text(
-                    text = "Логин", style = TextStyle(
-                        fontSize = 15.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(500),
-                        color = Color(0xFFFFFFFF),
-                        textAlign = TextAlign.Center,
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                CustomTextField(
-                    onValueChange = { login = it },
-                    textFieldValue = login,
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                    isPassword = false
-                )
-
-                Spacer(modifier = Modifier.height(15.dp))
-                Text(
-                    text = "Электронная почта", style = TextStyle(
-                        fontSize = 15.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(500),
-                        color = Color(0xFFFFFFFF),
-                        textAlign = TextAlign.Center,
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                CustomTextField(
-                    onValueChange = { email = it },
-                    textFieldValue = email,
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                    isPassword = false
-                )
-
-                Spacer(modifier = Modifier.height(15.dp))
-
-                Text(
-                    text = "Дата рождения", style = TextStyle(
-                        fontSize = 15.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(500),
-                        color = Color(0xFFFFFFFF),
-                        textAlign = TextAlign.Center,
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                CustomDateField(
-                    onValueChange = { birthDate = it },
-                    textFieldValue = birthDate,
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                )
-                Spacer(modifier = Modifier.height(15.dp))
-                Button(
-                    onClick = {
-                        navController.navigate(Screen.RegistrationPwd.route)
-                    },
-                    modifier = Modifier
-                        .width(328.dp)
-                        .height(42.dp)
-                        .alpha(
-                            if (buttonEnabled) 1f else 0.45f
-                        ),
-                    shape = RoundedCornerShape(size = 10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFC315E),
-                        disabledContainerColor = Color(0xFFFC315E),
                     ),
-                    enabled = buttonEnabled,
-
-                    ) {
-                    Text(
-                        text = "Продолжить",
-
-                        style = TextStyle(
-                            fontSize = 15.sp,
-                            fontFamily = FontFamily(Font(R.font.inter)),
-                            fontWeight = FontWeight(600),
-                            color = Color(0xFFFFFFFF),
-                            textAlign = TextAlign.Center,
-                        ),
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Text(
-                        text = "Уже есть аккаунт? ", style = TextStyle(
-                            fontSize = 14.sp,
-                            fontFamily = FontFamily(Font(R.font.inter)),
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFFC4C8CC),
-                            textAlign = TextAlign.Center,
-                        )
-                    )
-                    Text(
-                        text = "Войдите",
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontFamily = FontFamily(Font(R.font.inter)),
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFFFC315E),
-                            textAlign = TextAlign.Center,
-                        ),
-                        modifier = Modifier.clickable {
-                            navController.navigate(Screen.Login.route)
-                        },
-                    )
-                }
+                    modifier = Modifier.clickable {
+                        navController.navigate(Screen.Login.route)
+                    },
+                )
             }
-        })
-}
-
-
-@Preview
-@Composable
-fun Btn() {
-    Button(
-        onClick = {
-        },
-        modifier = Modifier
-            .width(328.dp)
-            .height(42.dp),
-        shape = RoundedCornerShape(size = 10.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFFC315E),
-            disabledContainerColor = Color(0xFFFC315E),
-        ),
-
-        ) {
-        Text(
-            text = "Продолжить",
-
-            style = TextStyle(
-                fontSize = 15.sp,
-                fontFamily = FontFamily(Font(R.font.inter)),
-                fontWeight = FontWeight(600),
-                color = Color(0xFFFFFFFF),
-            ),
-        )
-    }
+        }
+    })
 }
