@@ -63,12 +63,16 @@ class ValidateRegistrationDataUseCase {
 
         val selectedDate = dateFormat.parse(birthDate)
 
-        if (selectedDate.after(currentDate)) {
-            return FieldValidationState(false, "Дата рождения не может быть в будущем")
+        if (selectedDate != null) {
+            if (selectedDate.after(currentDate)) {
+                return FieldValidationState(false, "Дата рождения не может быть в будущем")
+            }
         }
 
-        if (selectedDate.before(maxDate)) {
-            return FieldValidationState(false, "Дата рождения должна быть после 1900 года")
+        if (selectedDate != null) {
+            if (selectedDate.before(maxDate)) {
+                return FieldValidationState(false, "Дата рождения должна быть после 1900 года")
+            }
         }
 
         return FieldValidationState(true, "")
