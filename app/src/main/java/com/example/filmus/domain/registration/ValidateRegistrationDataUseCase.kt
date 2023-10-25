@@ -37,8 +37,18 @@ class ValidateRegistrationDataUseCase {
             return FieldValidationState(false, "Логин должен содержать как минимум 5 символов")
         }
 
+        val pattern = "^[a-zA-Z0-9]*$".toRegex()
+
+        if (!pattern.matches(login)) {
+            return FieldValidationState(
+                false,
+                "Логин должен содержать только английские буквы и цифры"
+            )
+        }
+
         return FieldValidationState(true, "")
     }
+
 
     private fun validateEmail(email: String): FieldValidationState {
         val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
@@ -58,25 +68,21 @@ class ValidateRegistrationDataUseCase {
         }
 
         val dateFormat = SimpleDateFormat("ddMMyyyy", Locale.getDefault())
-        val currentDate = Calendar.getInstance().time
-        val maxDate = dateFormat.parse("1900-01-01")
-
-        val selectedDate = dateFormat.parse(birthDate)
-
-        if (selectedDate != null) {
-            if (selectedDate.after(currentDate)) {
-                return FieldValidationState(false, "Дата рождения не может быть в будущем")
-            }
+        val minDate = "01011900"
+        val maxDate = dateFormat.format(Calendar.getInstance().time)
+        val datePattern = """^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[0-2])\d{4}$""".toRegex()
+        if (!birthDate.matches(datePattern)) {
+            return FieldValidationState(false, "Неправильный формат даты рождения")
         }
 
-        if (selectedDate != null) {
-            if (selectedDate.before(maxDate)) {
-                return FieldValidationState(false, "Дата рождения должна быть после 1900 года")
-            }
+        if (birthDate < minDate || birthDate > maxDate) {
+            return FieldValidationState(false, "Неправильная дата рождения")
         }
 
         return FieldValidationState(true, "")
+
     }
+
 
     fun validatePassword(password: String, confirmPassword: String): FieldValidationState {
         if (password.isEmpty()) {

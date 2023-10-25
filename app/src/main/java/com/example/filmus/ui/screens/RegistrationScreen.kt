@@ -53,6 +53,7 @@ fun RegistrationScreen(
 ) {
     var name by viewModel.name
     var login by viewModel.login
+    var isMale by viewModel.gender
     var email by viewModel.email
     var birthDate by viewModel.birthDate
     val buttonEnabled =
@@ -153,7 +154,10 @@ fun RegistrationScreen(
                 )
             )
             Spacer(modifier = Modifier.height(8.dp))
-            GenderSelection(viewModel)
+            GenderSelection(
+                defaultIsMale = isMale,
+                onGenderSelected = { isMale = it }
+            )
             Spacer(modifier = Modifier.height(15.dp))
             Text(
                 text = "Логин", style = TextStyle(
