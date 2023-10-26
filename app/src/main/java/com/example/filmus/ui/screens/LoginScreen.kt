@@ -161,7 +161,7 @@ fun LoginScreen(
                         when (result) {
                             is LoginResult.Success -> {
                                 Log.d("LoginScreen", "LoginScreen: Success")
-                                navController.navigate(Screen.Welcome.route)
+                                navController.navigate(Screen.Profile.route)
                             }
 
                             is LoginResult.Error -> {
