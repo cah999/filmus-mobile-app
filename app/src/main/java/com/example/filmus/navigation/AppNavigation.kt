@@ -1,14 +1,13 @@
 package com.example.filmus.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHost
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.NavHostController
-import com.example.filmus.api.ApiService
+import com.example.filmus.R
+import com.example.filmus.ui.screens.FavoritesScreen
 import com.example.filmus.ui.screens.LoginScreen
+import com.example.filmus.ui.screens.Poster
 import com.example.filmus.ui.screens.RegistrationPwdScreen
 import com.example.filmus.ui.screens.RegistrationScreen
 import com.example.filmus.ui.screens.WelcomeScreen
@@ -34,6 +33,18 @@ fun AppNavigation(
         }
         composable(Screen.RegistrationPwd.route) {
             RegistrationPwdScreen(navController = navController, viewModel = registrationViewModel)
+        }
+        composable(Screen.Favorite.route) {
+            val posters = listOf(
+                Poster(R.drawable.splash_background, "Постер 1"),
+                Poster(R.drawable.ic_launcher_background, "Постер 2"),
+                Poster(R.drawable.splash_background, "Постер 3"),
+                Poster(R.drawable.splash_background, "Постер 3"),
+                Poster(R.drawable.ic_launcher_background, "Постер 3"),
+                Poster(R.drawable.back, "Постер 3"),
+                Poster(R.drawable.back, "Постер 3"),
+            )
+            FavoritesScreen(posters = posters)
         }
     }
 }

@@ -98,7 +98,7 @@ fun WelcomeScreen(navController: NavHostController) {
 
         Spacer(modifier = Modifier.height(15.dp))
         Button(
-            onClick = { navController.navigate(Screen.Login.route) },
+            onClick = { navController.navigate(Screen.Favorite.route) },
             modifier = Modifier
                 .width(328.dp)
                 .height(42.dp),
