@@ -1,7 +1,6 @@
-package com.example.filmus.domain.login
+package com.example.filmus.domain
 
 import android.content.Context
-
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
