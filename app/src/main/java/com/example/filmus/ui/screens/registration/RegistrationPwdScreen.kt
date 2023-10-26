@@ -1,4 +1,4 @@
-package com.example.filmus.ui.screens
+package com.example.filmus.ui.screens.registration
 
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
@@ -45,8 +45,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.filmus.R
-import com.example.filmus.domain.login.UIState
-import com.example.filmus.domain.registration.RegistrationResult
+import com.example.filmus.domain.UIState
+import com.example.filmus.domain.registration.register.RegistrationResult
 import com.example.filmus.navigation.Screen
 import com.example.filmus.ui.fields.CustomTextField
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
@@ -167,7 +167,7 @@ fun RegistrationPwdScreen(
                     ), modifier = Modifier.alpha(1f)
                 )
             } else if (state == UIState.LOADING) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(15.dp))
                 LinearProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()

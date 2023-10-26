@@ -1,4 +1,4 @@
-package com.example.filmus.domain.registration
+package com.example.filmus.domain.registration.validation
 
 data class FieldValidationState(
     var isValid: Boolean,

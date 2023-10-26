@@ -1,7 +1,8 @@
-package com.example.filmus.domain.registration
+package com.example.filmus.domain.registration.register
 
 import com.example.filmus.api.RegistrationRequest
 import com.example.filmus.repository.registration.RegistrationRepository
+
 
 class RegistrationUseCase(private val registrationRepository: RegistrationRepository) {
     suspend fun register(request: RegistrationRequest): RegistrationResult {

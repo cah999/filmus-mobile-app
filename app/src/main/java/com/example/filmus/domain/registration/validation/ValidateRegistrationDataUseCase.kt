@@ -1,5 +1,6 @@
-package com.example.filmus.domain.registration
+package com.example.filmus.domain.registration.validation
 
+import com.example.filmus.domain.registration.register.RegistrationData
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale

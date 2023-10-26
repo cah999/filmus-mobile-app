@@ -4,7 +4,7 @@ import android.util.Log
 import com.example.filmus.api.ApiService
 import com.example.filmus.api.LoginRequest
 import com.example.filmus.domain.login.LoginResult
-import com.example.filmus.domain.login.MoshiProvider
+import com.example.filmus.domain.MoshiProvider
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 

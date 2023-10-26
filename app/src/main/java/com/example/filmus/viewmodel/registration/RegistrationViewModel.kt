@@ -5,12 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.filmus.api.RegistrationRequest
 import com.example.filmus.api.createApiService
-import com.example.filmus.domain.login.TokenManager
-import com.example.filmus.domain.registration.FieldValidationState
-import com.example.filmus.domain.registration.RegistrationData
-import com.example.filmus.domain.registration.RegistrationResult
-import com.example.filmus.domain.registration.RegistrationUseCase
-import com.example.filmus.domain.registration.ValidateRegistrationDataUseCase
+import com.example.filmus.domain.TokenManager
+import com.example.filmus.domain.registration.register.RegistrationData
+import com.example.filmus.domain.registration.register.RegistrationResult
+import com.example.filmus.domain.registration.register.RegistrationUseCase
+import com.example.filmus.domain.registration.validation.FieldValidationState
+import com.example.filmus.domain.registration.validation.ValidateRegistrationDataUseCase
 import com.example.filmus.repository.registration.RegistrationRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,7 +20,6 @@ import java.util.Date
 import java.util.Locale
 
 
-// todo почитать про state, mvi
 class RegistrationViewModel(
     private val validateUseCase: ValidateRegistrationDataUseCase,
     private val tokenManager: TokenManager
@@ -78,7 +77,7 @@ class RegistrationViewModel(
     fun register(onResult: (RegistrationResult) -> Unit) {
         viewModelScope.launch() {
             val apiService = createApiService()
-            val registrationRepository = RegistrationRepository(apiService)
+            val registrationRepository = RegistrationRepository(apiService, tokenManager)
             val registrationUseCase = RegistrationUseCase(registrationRepository)
             val result = registrationUseCase.register(
                 RegistrationRequest(
@@ -90,10 +89,6 @@ class RegistrationViewModel(
                     gender = if (gender.value) 1 else 0
                 )
             )
-            if (result is RegistrationResult.Success) {
-                val token = result.token
-                tokenManager.saveToken(token)
-            }
 
             withContext(Dispatchers.Main) {
                 onResult(result)

@@ -1,4 +1,4 @@
-package com.example.filmus.ui.screens
+package com.example.filmus.ui.screens.login
 
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.filmus.R
 import com.example.filmus.domain.login.LoginResult
-import com.example.filmus.domain.login.UIState
+import com.example.filmus.domain.UIState
 import com.example.filmus.navigation.Screen
 import com.example.filmus.ui.fields.CustomTextField
 import com.example.filmus.viewmodel.login.LoginViewModel

@@ -1,4 +1,4 @@
-package com.example.filmus.ui.screens
+package com.example.filmus.ui.screens.registration
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -45,6 +45,7 @@ import com.example.filmus.ui.fields.CustomDateField
 import com.example.filmus.ui.fields.CustomTextField
 import com.example.filmus.ui.fields.GenderSelection
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

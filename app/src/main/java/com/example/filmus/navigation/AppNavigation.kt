@@ -5,12 +5,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.filmus.R
-import com.example.filmus.ui.screens.FavoritesScreen
-import com.example.filmus.ui.screens.LoginScreen
-import com.example.filmus.ui.screens.Poster
-import com.example.filmus.ui.screens.RegistrationPwdScreen
-import com.example.filmus.ui.screens.RegistrationScreen
-import com.example.filmus.ui.screens.WelcomeScreen
+import com.example.filmus.ui.screens.favorites.FavoritesScreen
+import com.example.filmus.ui.screens.favorites.Poster
+import com.example.filmus.ui.screens.login.LoginScreen
+import com.example.filmus.ui.screens.main.MainScreen
+import com.example.filmus.ui.screens.profile.ProfileScreen
+import com.example.filmus.ui.screens.registration.RegistrationPwdScreen
+import com.example.filmus.ui.screens.registration.RegistrationScreen
+import com.example.filmus.ui.screens.welcome.WelcomeScreen
 import com.example.filmus.viewmodel.login.LoginViewModel
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
 
@@ -39,12 +41,15 @@ fun AppNavigation(
                 Poster(R.drawable.splash_background, "Постер 1"),
                 Poster(R.drawable.ic_launcher_background, "Постер 2"),
                 Poster(R.drawable.splash_background, "Постер 3"),
-                Poster(R.drawable.splash_background, "Постер 3"),
-                Poster(R.drawable.ic_launcher_background, "Постер 3"),
-                Poster(R.drawable.back, "Постер 3"),
-                Poster(R.drawable.back, "Постер 3"),
+                Poster(R.drawable.ic_launcher_background, "Постер 4"),
             )
             FavoritesScreen(posters = posters)
+        }
+        composable(Screen.Main.route) {
+            MainScreen(navController = navController, appNavigator = appNavigator)
+        }
+        composable(Screen.Profile.route) {
+            ProfileScreen(navController = navController, appNavigator = appNavigator)
         }
     }
 }

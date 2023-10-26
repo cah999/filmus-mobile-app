@@ -1,4 +1,4 @@
-package com.example.filmus.domain.login
+package com.example.filmus.domain
 
 enum class UIState {
     DEFAULT,

@@ -1,4 +1,4 @@
-package com.example.filmus.ui.screens
+package com.example.filmus.ui.screens.favorites
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

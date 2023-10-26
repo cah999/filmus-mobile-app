@@ -1,4 +1,4 @@
-package com.example.filmus.domain.login
+package com.example.filmus.domain
 
 import com.example.filmus.api.LoginRequest
 import com.example.filmus.api.RegistrationRequest

@@ -1,4 +1,4 @@
-package com.example.filmus.domain.registration
+package com.example.filmus.domain.registration.register
 
 data class RegistrationData(
     val name: String,

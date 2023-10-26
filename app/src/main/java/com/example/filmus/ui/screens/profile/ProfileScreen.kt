@@ -1,4 +1,4 @@
-package com.example.filmus.ui.screens
+package com.example.filmus.ui.screens.profile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
