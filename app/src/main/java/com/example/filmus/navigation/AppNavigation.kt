@@ -25,30 +25,41 @@ fun AppNavigation(
 ) {
     NavHost(navController, startDestination = appNavigator.currentScreen.value.route) {
         composable(Screen.Welcome.route) {
+            appNavigator.currentScreen.value = Screen.Welcome
             WelcomeScreen(navController = navController)
         }
         composable(Screen.Login.route) {
+            appNavigator.currentScreen.value = Screen.Login
             LoginScreen(navController = navController, viewModel = loginViewModel)
         }
         composable(Screen.Registration.route) {
+            appNavigator.currentScreen.value = Screen.Registration
             RegistrationScreen(navController = navController, viewModel = registrationViewModel)
         }
         composable(Screen.RegistrationPwd.route) {
+            appNavigator.currentScreen.value = Screen.RegistrationPwd
             RegistrationPwdScreen(navController = navController, viewModel = registrationViewModel)
         }
         composable(Screen.Favorite.route) {
+            appNavigator.currentScreen.value = Screen.Favorite
             val posters = listOf(
-                Poster(R.drawable.splash_background, "Постер 1"),
-                Poster(R.drawable.ic_launcher_background, "Постер 2"),
+                Poster(R.drawable.splash_background, "Постер 1", 9),
+                Poster(R.drawable.ic_launcher_background, "Постер 2", 3),
                 Poster(R.drawable.splash_background, "Постер 3"),
-                Poster(R.drawable.ic_launcher_background, "Постер 4"),
+                Poster(R.drawable.ic_launcher_background, "Постер 4", 4),
             )
-            FavoritesScreen(posters = posters)
+            FavoritesScreen(
+                posters = posters,
+                navController = navController,
+                appNavigator = appNavigator
+            )
         }
         composable(Screen.Main.route) {
+            appNavigator.currentScreen.value = Screen.Main
             MainScreen(navController = navController, appNavigator = appNavigator)
         }
         composable(Screen.Profile.route) {
+            appNavigator.currentScreen.value = Screen.Profile
             ProfileScreen(navController = navController, appNavigator = appNavigator)
         }
     }

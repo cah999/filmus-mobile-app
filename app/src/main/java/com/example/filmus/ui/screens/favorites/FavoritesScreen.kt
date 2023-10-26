@@ -2,10 +2,11 @@ package com.example.filmus.ui.screens.favorites
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,50 +16,62 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.filmus.R
+import com.example.filmus.navigation.AppNavigator
+import com.example.filmus.navigation.BottomBar
 
 data class Poster(
-    val imageResource: Int, val title: String, val rating: Float? = null
+    val imageResource: Int, val title: String, val rating: Int? = null
 )
 
 @Composable
-fun FavoritesScreen(posters: List<Poster>) {
-    if (posters.isEmpty()) {
-        NoFavoritesPlaceholder()
-    } else {
-        FavoritesList(posters = posters)
-    }
+fun FavoritesScreen(
+    posters: List<Poster>, navController: NavController, appNavigator: AppNavigator
+) {
+    Scaffold(bottomBar = { BottomBar(navController = navController, appNavigator = appNavigator) },
+        content = {
+            if (posters.isEmpty()) {
+                NoFavoritesPlaceholder(it)
+            } else {
+                FavoritesList(posters = posters, it)
+            }
+        })
+
 }
 
 @Composable
-fun FavoritesList(posters: List<Poster>) {
-    val postersInRows = posters.chunked(3) // Разбиваем массив постеров на списки по 3 постера
+fun FavoritesList(posters: List<Poster>, it: PaddingValues) {
+    val postersInRows = posters.chunked(3)
 
-    LazyColumn {
+    LazyColumn(Modifier.padding(it)) {
         items(postersInRows) { postersRow ->
             Row {
                 if (postersRow.size >= 2) {
-                    // Отображаем первые два постера в одной строке
                     PosterItem(
-                        poster = postersRow[0],
-                        nextPoster = postersRow[1],
-                        fullWidth = false
+                        poster = postersRow[0], nextPoster = postersRow[1], fullWidth = false
                     )
                 } else if (postersRow.size == 1) {
-                    // Если есть только один постер, то отображаем его на всю строку
                     PosterItem(poster = postersRow[0], fullWidth = true)
                 }
             }
 
             if (postersRow.size == 3) {
-                // Если в строке есть 3 постера, то отображаем третий постер на всю строку
                 PosterItem(poster = postersRow[2], fullWidth = true)
             }
         }
@@ -70,51 +83,87 @@ fun FavoritesList(posters: List<Poster>) {
 fun PosterItem(poster: Poster, nextPoster: Poster? = null, fullWidth: Boolean) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+            .padding(start = 20.dp, end = 20.dp, top = 20.dp)
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         if (fullWidth) {
-            // Если постер занимает всю строку, то выводим его на всю ширину
-            PosterCard(poster = poster, modifier = Modifier.weight(1f))
+            PosterCard(
+                poster = poster, 227.dp, 328.dp
+
+            )
         } else {
-            // Если два постера в одной строке, разделяем строку на две части
-            PosterCard(poster = poster, modifier = Modifier.weight(1f))
+            PosterCard(
+                poster = poster, 244.dp, 156.5.dp
+            )
             Spacer(modifier = Modifier.width(16.dp))
             if (nextPoster != null) {
-                PosterCard(poster = nextPoster, modifier = Modifier.weight(1f))
+                PosterCard(
+                    poster = nextPoster, 244.dp, 156.5.dp
+                )
             }
         }
     }
 }
 
 @Composable
-fun PosterCard(poster: Poster, modifier: Modifier = Modifier) {
+fun PosterCard(poster: Poster, height: Dp, width: Dp) {
     Card(
-        modifier = modifier
-            .aspectRatio(2f / 3f)
-            .height(200.dp), shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(0.dp),
+        modifier = Modifier.width(width),
+        colors = androidx.compose.material3.CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        ),
     ) {
-        // Здесь рендерите содержимое постера, например, изображение и название
-        // Пример:
         Column(
-            modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxSize()
         ) {
-            Image(
-                painter = painterResource(poster.imageResource),
-                contentDescription = poster.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-            Text(
-                text = poster.title,
+            Box(
                 modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold
+                    .height(height)
+                    .width(width)
+            ) {
+                Image(
+                    painter = painterResource(poster.imageResource),
+                    contentDescription = poster.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                val ratingImageResource = when (poster.rating) {
+                    2 -> R.drawable.mark_2
+                    3 -> R.drawable.mark_3
+                    4 -> R.drawable.mark_4
+                    6 -> R.drawable.mark_6
+                    8 -> R.drawable.mark_8
+                    9 -> R.drawable.mark_9
+                    else -> null
+                }
+                if (ratingImageResource != null) {
+                    Image(
+                        painter = painterResource(ratingImageResource),
+                        contentDescription = "Rating",
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .width(38.dp)
+                            .height(26.dp)
+                            .align(Alignment.TopEnd)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = poster.title, style = TextStyle(
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(500),
+                    color = Color(0xFFFFFFFF),
+                )
             )
         }
     }
 }
+
+
 
