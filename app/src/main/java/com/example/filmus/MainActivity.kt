@@ -1,7 +1,6 @@
 package com.example.filmus
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.Crossfade
@@ -18,6 +17,7 @@ import com.example.filmus.domain.TokenManager
 import com.example.filmus.domain.registration.validation.ValidateRegistrationDataUseCase
 import com.example.filmus.navigation.AppNavigation
 import com.example.filmus.navigation.AppNavigator
+import com.example.filmus.navigation.Screen
 import com.example.filmus.ui.screens.splash.LoadingScreen
 import com.example.filmus.ui.theme.FilmusTheme
 import com.example.filmus.viewmodel.login.LoginViewModel
@@ -32,11 +32,10 @@ class MainActivity : ComponentActivity() {
             val tokenManager = TokenManager(this)
             LaunchedEffect(true) {
                 val token = tokenManager.getToken()
-                Log.d("MainActivity", "token: ${tokenManager.getToken()}")
                 if (token != null) {
-                    Log.d("MainActivity", "yep token: $token")
+                    appNavigator.currentScreen.value = Screen.Welcome
                 } else {
-                    Log.d("MainActivity", "token: $token")
+                    appNavigator.currentScreen.value = Screen.Main
                 }
             }
             val loginViewModel = LoginViewModel(tokenManager)
