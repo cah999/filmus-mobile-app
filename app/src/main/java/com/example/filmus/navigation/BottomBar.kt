@@ -39,6 +39,7 @@ fun BottomBar(
             modifier = Modifier
                 .width(360.dp)
                 .height(67.dp)
+
         ) {
             appNavigator.currentScreen.let { currentScreen ->
                 val screensToDisplay = listOf(
