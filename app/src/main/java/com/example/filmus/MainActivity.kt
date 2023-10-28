@@ -1,66 +1,87 @@
 package com.example.filmus
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.Crossfade
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.filmus.domain.TokenManager
-import com.example.filmus.domain.registration.validation.ValidateRegistrationDataUseCase
 import com.example.filmus.navigation.AppNavigation
-import com.example.filmus.navigation.AppNavigator
+import com.example.filmus.navigation.BottomBar
 import com.example.filmus.navigation.Screen
-import com.example.filmus.ui.screens.splash.LoadingScreen
+import com.example.filmus.navigation.TopBar
 import com.example.filmus.ui.theme.FilmusTheme
 import com.example.filmus.viewmodel.login.LoginViewModel
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
+import com.example.filmus.viewmodel.registration.RegistrationViewModelFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
-            val appNavigator = AppNavigator()
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Loading.route
             val tokenManager = TokenManager(this)
+            var startScreen by remember { mutableStateOf<Screen>(Screen.Loading) }
             LaunchedEffect(true) {
                 val token = tokenManager.getToken()
-                if (token != null) {
-                    appNavigator.currentScreen.value = Screen.Welcome
+                startScreen = if (token != null) {
+                    Screen.Main
                 } else {
-                    appNavigator.currentScreen.value = Screen.Main
+                    Screen.Welcome
                 }
+                isLoading = false
             }
+
             val loginViewModel = LoginViewModel(tokenManager)
-            val registrationViewModel =
-                RegistrationViewModel(ValidateRegistrationDataUseCase(), tokenManager)
+            val registrationViewModel: RegistrationViewModel by viewModels {
+                RegistrationViewModelFactory(tokenManager)
+            }
+
             FilmusTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    LaunchedEffect(true) {
-//                        delay(2000)
-                        isLoading = false
-                    }
-                    Crossfade(targetState = isLoading, label = "") { isLoading ->
-                        if (isLoading) {
-                            LoadingScreen()
-                        } else {
-                            AppNavigation(
-                                navController,
-                                appNavigator,
-                                loginViewModel,
-                                registrationViewModel
-                            )
+                Scaffold(topBar = {
+                    when (currentRoute) {
+                        Screen.Login.route, Screen.Registration.route, Screen.RegistrationPwd.route -> {
+                            TopBar(navController = navController)
                         }
+
+                        Screen.Movie.route -> {
+                            TopBar(navController = navController, logo = false)
+                        }
+                        // todo null or top bar without elements??
+                        else -> {}
+                    }
+                }, bottomBar = {
+                    when (currentRoute) {
+                        Screen.Main.route, Screen.Favorite.route, Screen.Profile.route -> {
+                            BottomBar(navController = navController)
+                        }
+
+                        else -> {}
+                    }
+                }) {
+                    Box(
+                        modifier = Modifier
+                            .padding(it)
+                            .fillMaxSize()
+                    ) {
+                        Log.d("MainActivity", "startScreen: $startScreen")
+                        AppNavigation(
+                            navController, loginViewModel, registrationViewModel, startScreen
+                        )
                     }
                 }
             }

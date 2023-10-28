@@ -1,6 +1,5 @@
 package com.example.filmus.navigation
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,9 +24,7 @@ import androidx.navigation.NavController
 import com.example.filmus.R
 
 @Composable
-fun BottomBar(
-    navController: NavController, appNavigator: AppNavigator
-) {
+fun BottomBar(navController: NavController) {
     Column {
         Divider(
             modifier = Modifier.fillMaxWidth(),
@@ -39,46 +36,41 @@ fun BottomBar(
             modifier = Modifier
                 .width(360.dp)
                 .height(67.dp)
-
         ) {
-            appNavigator.currentScreen.let { currentScreen ->
-                val screensToDisplay = listOf(
-                    Screen.Main, Screen.Favorite, Screen.Profile
-                )
+            val screensToDisplay = listOf(Screen.Main, Screen.Favorite, Screen.Profile)
+            val currentScreen = navController.currentBackStackEntry?.destination?.route
 
-                screensToDisplay.forEach { screen ->
-                    Log.d("BottomBar", "screen: $screen, currentScreen: $currentScreen")
-                    BottomNavigationItem(
-                        icon = {
-                            screen.imageResource?.let { resource ->
-                                Icon(
-                                    painter = painterResource(resource),
-                                    contentDescription = null
-                                )
-                            }
-                        },
-                        label = {
-                            Text(
-                                text = screen.title,
-                                style = TextStyle(
-                                    fontSize = 11.sp,
-                                    fontFamily = FontFamily(Font(R.font.inter)),
-                                    fontWeight = FontWeight(400),
-                                    textAlign = TextAlign.Center,
-                                )
+            screensToDisplay.forEach { screen ->
+                BottomNavigationItem(
+                    icon = {
+                        screen.imageResource?.let { resource ->
+                            Icon(
+                                painter = painterResource(resource),
+                                contentDescription = null
                             )
-                        },
-                        selected = currentScreen.value == screen,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.startDestinationId)
-                                launchSingleTop = true
-                            }
-                        },
-                        selectedContentColor = Color(0xFFFC315E),
-                        unselectedContentColor = Color(0xFF909499),
-                    )
-                }
+                        }
+                    },
+                    label = {
+                        Text(
+                            text = screen.title,
+                            style = TextStyle(
+                                fontSize = 11.sp,
+                                fontFamily = FontFamily(Font(R.font.inter)),
+                                fontWeight = FontWeight(400),
+                                textAlign = TextAlign.Center,
+                            )
+                        )
+                    },
+                    selected = currentScreen == screen.route,
+                    onClick = {
+                        navController.navigate(screen.route) {
+                            popUpTo(navController.graph.startDestinationId)
+                            launchSingleTop = true
+                        }
+                    },
+                    selectedContentColor = Color(0xFFFC315E),
+                    unselectedContentColor = Color(0xFF909499),
+                )
             }
         }
     }

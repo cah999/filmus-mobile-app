@@ -14,8 +14,7 @@ import com.example.filmus.R
 @Composable
 fun LoadingScreen() {
     Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
     ) {
         Image(
             painter = painterResource(id = R.drawable.splash_background),
@@ -34,8 +33,7 @@ fun LoadingScreen() {
         )
 
         Image(
-            painter = painterResource(id = R.drawable.logo),
-            contentDescription = null
+            painter = painterResource(id = R.drawable.logo), contentDescription = null
         )
     }
 }

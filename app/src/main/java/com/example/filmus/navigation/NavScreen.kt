@@ -3,6 +3,7 @@ package com.example.filmus.navigation
 import com.example.filmus.R
 
 sealed class Screen(val route: String, val title: String, val imageResource: Int? = null) {
+    object Loading : Screen("loading", "Loading", null)
     object Welcome : Screen("welcome", "Welcome", null)
     object Login : Screen("login", "Login", null)
     object Registration : Screen("registration", "Registration", null)

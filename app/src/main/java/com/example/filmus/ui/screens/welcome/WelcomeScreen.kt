@@ -82,7 +82,7 @@ fun WelcomeScreen(navController: NavHostController) {
             ),
 
 
-        ) {
+            ) {
             Text(
                 text = "Регистрация",
 
@@ -98,8 +98,7 @@ fun WelcomeScreen(navController: NavHostController) {
 
         Spacer(modifier = Modifier.height(15.dp))
         Button(
-            // TODO replace pls
-            onClick = { navController.navigate(Screen.Favorite.route) },
+            onClick = { navController.navigate(Screen.Login.route) },
             modifier = Modifier
                 .width(328.dp)
                 .height(42.dp),

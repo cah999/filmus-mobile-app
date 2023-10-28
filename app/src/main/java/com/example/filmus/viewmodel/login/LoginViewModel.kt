@@ -17,14 +17,9 @@ class LoginViewModel(private val tokenManager: TokenManager) : ViewModel() {
     fun login(username: String, password: String, onResult: (LoginResult) -> Unit) {
         viewModelScope.launch() {
             val apiService = createApiService()
-            val loginRepository = LoginRepository(apiService)
+            val loginRepository = LoginRepository(apiService, tokenManager)
             val loginUseCase = LoginUseCase(loginRepository)
             val result = loginUseCase.login(username.trim(), password.trim())
-
-            if (result is LoginResult.Success) {
-                val token = result.token
-                tokenManager.saveToken(token)
-            }
 
             withContext(Dispatchers.Main) {
                 onResult(result)

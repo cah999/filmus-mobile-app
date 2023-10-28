@@ -1,5 +1,6 @@
 package com.example.filmus.viewmodel.registration
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,19 +22,20 @@ import java.util.Locale
 
 
 class RegistrationViewModel(
-    private val validateUseCase: ValidateRegistrationDataUseCase,
     private val tokenManager: TokenManager
 ) :
     ViewModel() {
-    val name = mutableStateOf("")
-    val gender = mutableStateOf(true)
-    val login = mutableStateOf("")
-    val email = mutableStateOf("")
-    val birthDate = mutableStateOf("")
-    val password = mutableStateOf("")
-    val passwordRepeat = mutableStateOf("")
-    val validationStates = mutableStateOf(emptyList<FieldValidationState>())
 
+
+    var name = mutableStateOf("")
+    var gender = mutableStateOf(true)
+    var login = mutableStateOf("")
+    var email = mutableStateOf("")
+    var birthDate = mutableStateOf("")
+    var password = mutableStateOf("")
+    var passwordRepeat = mutableStateOf("")
+    val validationStates = mutableStateOf(emptyList<FieldValidationState>())
+    private val validateUseCase = ValidateRegistrationDataUseCase()
     fun getOutlineColor(state: FieldValidationState?): Int {
         return if (state?.isValid == false) {
             0xFFE64646.toInt()
@@ -66,6 +68,7 @@ class RegistrationViewModel(
     }
 
     private fun formatDateToISO8601(birthDate: String): String {
+        Log.d("RegistrationViewModel", "formatDateToISO8601: $birthDate")
         val inputFormat = SimpleDateFormat("ddMMyyyy", Locale.getDefault())
         val outputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
 
@@ -76,6 +79,8 @@ class RegistrationViewModel(
 
     fun register(onResult: (RegistrationResult) -> Unit) {
         viewModelScope.launch() {
+            Log.d("RegistrationViewModel", "register: birthDate: ${birthDate}")
+            Log.d("RegistrationViewModel", "register: email: ${email}")
             val apiService = createApiService()
             val registrationRepository = RegistrationRepository(apiService, tokenManager)
             val registrationUseCase = RegistrationUseCase(registrationRepository)
@@ -89,7 +94,6 @@ class RegistrationViewModel(
                     gender = if (gender.value) 1 else 0
                 )
             )
-
             withContext(Dispatchers.Main) {
                 onResult(result)
             }

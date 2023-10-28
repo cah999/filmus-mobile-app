@@ -2,7 +2,6 @@ package com.example.filmus.ui.screens.favorites
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -22,11 +21,10 @@ import androidx.compose.ui.unit.sp
 import com.example.filmus.R
 
 @Composable
-fun NoFavoritesPlaceholder(it: PaddingValues) {
+fun NoFavoritesPlaceholder() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(it)
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally

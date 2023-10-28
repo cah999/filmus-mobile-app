@@ -1,5 +1,6 @@
 package com.example.filmus.domain.registration.validation
 
+import android.util.Log
 import com.example.filmus.domain.registration.register.RegistrationData
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -69,14 +70,18 @@ class ValidateRegistrationDataUseCase {
         }
 
         val dateFormat = SimpleDateFormat("ddMMyyyy", Locale.getDefault())
-        val minDate = "01011900"
-        val maxDate = dateFormat.format(Calendar.getInstance().time)
+        val userDate = dateFormat.parse(birthDate)
+        val minDate = dateFormat.parse("01011900")
+        val maxDate = dateFormat.parse(dateFormat.format(Calendar.getInstance().time))
         val datePattern = """^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[0-2])\d{4}$""".toRegex()
         if (!birthDate.matches(datePattern)) {
             return FieldValidationState(false, "Неправильный формат даты рождения")
         }
-
-        if (birthDate < minDate || birthDate > maxDate) {
+        Log.d(
+            "ValidateRegistrationDataUseCase",
+            "minDate = $minDate, maxDate = $maxDate, birthDate = $birthDate, userDate = $userDate"
+        )
+        if (userDate < minDate || userDate > maxDate) {
             return FieldValidationState(false, "Неправильная дата рождения")
         }
 
