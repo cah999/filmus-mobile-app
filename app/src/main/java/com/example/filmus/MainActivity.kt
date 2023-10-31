@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
                         Screen.Movie.route -> {
                             TopBar(navController = navController, logo = false)
                         }
-                        // todo null or top bar without elements??
+
                         else -> {}
                     }
                 }, bottomBar = {
