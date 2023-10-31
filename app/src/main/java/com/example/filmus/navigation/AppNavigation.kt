@@ -91,7 +91,8 @@ fun AppNavigation(
                     )
                 ),
             )
-            MainScreen(navController = navController, viewModel = movieViewModel, movies = movies)
+            val testMovies: List<Movie> = listOf()
+            MainScreen(navController = navController, viewModel = movieViewModel, movies = testMovies)
         }
         composable(Screen.Profile.route) {
             ProfileScreen(navController = navController)

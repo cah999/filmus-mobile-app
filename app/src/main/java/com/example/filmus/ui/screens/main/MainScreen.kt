@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +27,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,38 +43,89 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.filmus.R
 import com.example.filmus.viewmodel.mainscreen.MovieViewModel
+import com.valentinilk.shimmer.shimmer
+import kotlinx.coroutines.delay
+import kotlin.math.min
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(navController: NavController, viewModel: MovieViewModel, movies: List<Movie>) {
-    Column(
-        modifier = Modifier.fillMaxSize()
+    val pagerState = rememberPagerState { min(4, movies.size) } // Карусель с первыми 4 фильмами
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
     ) {
-        Carousel(movies = movies)
-        Text(
-            text = "Каталог", style = TextStyle(
-                fontSize = 24.sp,
-                fontFamily = FontFamily(Font(R.font.inter)),
-                fontWeight = FontWeight(700),
-                color = Color(0xFFFFFFFF),
-            ),
-            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 15.dp)
-        )
-        LazyColumn(
-            contentPadding = PaddingValues(start = 16.dp),
-            content = {
-                items(movies) { movie ->
-                    MovieCard(
-                        moviePoster = movie.poster,
-                        movieName = movie.name,
-                        movieYear = movie.year.toString(),
-                        movieCountry = movie.country,
-                        movieGenres = movie.genres,
-                        movieRating = movie.reviews.map { it.rating }.average().toInt()
-                    )
+        item {
+            LaunchedEffect(pagerState) {
+                while (movies.isNotEmpty()) {
+                    delay(5000)
+                    pagerState.animateScrollToPage((pagerState.currentPage + 1) % pagerState.pageCount)
                 }
-            })
+            }
+
+            if (movies.isNotEmpty()) {
+                Carousel(
+                    movies = movies.subList(0, min(4, movies.size)), // Первые 4 фильма для карусели
+                    pagerState = pagerState,
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .shimmer()
+                        .width(360.dp)
+                        .height(497.dp)
+                        .background(Color(0xFF292929))
+                )
+            }
+        }
+
+        item {
+            Text(
+                text = "Каталог",
+                style = TextStyle(
+                    fontSize = 24.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(700),
+                    color = Color.White,
+                ),
+                modifier = Modifier.padding(start = 16.dp, bottom = 15.dp, top = 16.dp)
+            )
+        }
+
+        val remainingMovies = movies.subList(min(4, movies.size), movies.size)
+        if (remainingMovies.isEmpty()) {
+            item {
+                Text(
+                    text = "Пока здесь нет фильмов :(",
+                    style = TextStyle(
+                        fontSize = 20.sp,
+                        lineHeight = 24.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(700),
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                    ),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp, bottom = 16.dp)
+                )
+            }
+        } else {
+            items(remainingMovies) { movie ->
+                MovieCard(
+                    moviePoster = movie.poster,
+                    movieName = movie.name,
+                    movieYear = movie.year.toString(),
+                    movieCountry = movie.country,
+                    movieGenres = movie.genres,
+                    movieRating = movie.reviews.map { it.rating }.average().toInt()
+                )
+            }
+        }
     }
 }
+
 
 data class Review(
     val id: String, val rating: Int
@@ -92,22 +143,18 @@ data class Movie(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Carousel(
-    movies: List<Movie>, modifier: Modifier = Modifier
+    movies: List<Movie>,
+    pagerState: PagerState,
 ) {
-    val pagerState = rememberPagerState(
-        initialPage = 0, initialPageOffsetFraction = 0f
-    ) {
-        movies.size
-    }
-
     Box(
-        modifier = modifier
+        modifier = Modifier
+            .width(360.dp)
+            .height(497.dp)
     ) {
         HorizontalPager(state = pagerState) { page ->
             MoviePoster(movie = movies[page])
         }
 
-        // todo BLUR NOT WORKING?!?!?!?
         DotsIndicator(
             pagerState = pagerState,
             itemCount = movies.size,
@@ -180,8 +227,8 @@ fun MovieCard(
 
     Row(
         modifier = Modifier
+            .padding(start = 16.dp, bottom = 16.dp)
             .width(328.dp)
-            .padding(bottom = 16.dp)
     ) {
         Image(
             painter = painterResource(id = moviePoster),
@@ -196,8 +243,7 @@ fun MovieCard(
 
         Column {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = movieName,
@@ -207,11 +253,11 @@ fun MovieCard(
                         fontFamily = FontFamily(Font(R.font.inter)),
                         fontWeight = FontWeight(700),
                         color = Color(0xFFFFFFFF),
-                    ),
-                    modifier = Modifier.sizeIn(
-                        maxWidth = if (movieRating != null) 175.dp else (328-95).dp
+                    ), modifier = Modifier.sizeIn(
+                        maxWidth = if (movieRating != null) 175.dp else (328 - 95).dp
                     )
                 )
+
                 val img = when (movieRating) {
                     2 -> R.drawable.mark_2
                     3 -> R.drawable.mark_3

@@ -85,6 +85,11 @@ dependencies {
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.navigation:navigation-compose:2.7.4")
     implementation("androidx.compose.material:material:1.5.4")
+    implementation("com.valentinilk.shimmer:compose-shimmer:1.2.0")
+
+
+
+
 
 
 }
