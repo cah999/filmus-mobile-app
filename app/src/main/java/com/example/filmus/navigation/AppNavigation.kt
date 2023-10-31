@@ -67,13 +67,13 @@ fun AppNavigation(
                     R.drawable.splash_background,
                     2021,
                     "Россия",
-                    listOf("Жанр 1", "Жанр 2"),
+                    listOf("драма", "комедия", "биография", "криминал", "боевик", "триллер"),
                     listOf(
-                        Review("1", 5),
-                        Review("2", 4),
-                        Review("3", 3),
-                        Review("4", 2),
-                        Review("5", 1),
+                        Review("1", 8),
+                        Review("2", 8),
+                        Review("3", 8),
+                        Review("4", 9),
+                        Review("5", 8),
                     )
                 ),
                 Movie(

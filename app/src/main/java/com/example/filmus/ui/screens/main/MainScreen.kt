@@ -1,5 +1,6 @@
 package com.example.filmus.ui.screens.main
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -7,6 +8,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,24 +19,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -55,15 +61,18 @@ fun MainScreen(navController: NavController, viewModel: MovieViewModel, movies: 
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Карточки фильмов
-        MovieCard(
-            moviePoster = R.drawable.ic_launcher_background,
-            movieName = "Название фильма",
-            movieYear = "Год фильма",
-            movieCountry = "Страна фильма",
-            movieGenres = listOf("Жанр 1", "Жанр 2"),
-            movieRating = 8.5f
-        )
+        LazyColumn(contentPadding = PaddingValues(bottom = 16.dp), content = {
+            items(movies) { movie ->
+                MovieCard(
+                    moviePoster = movie.poster,
+                    movieName = movie.name,
+                    movieYear = movie.year.toString(),
+                    movieCountry = movie.country,
+                    movieGenres = movie.genres,
+                    movieRating = movie.reviews.map { it.rating }.average().toInt()
+                )
+            }
+        })
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -166,50 +175,7 @@ fun DotsIndicator(
 }
 
 
-//
-//@Composable
-//fun MovieList(viewModel: MovieViewModel) {
-//    val pagingItems = viewModel.pagingItems.collectAsLazyPagingItems()
-//
-//    LazyColumn(
-//        modifier = Modifier.fillMaxSize(),
-//        contentPadding = PaddingValues(16.dp)
-//    ) {
-//        items(pagingItems) { movie ->
-//            movie?.let { MovieCard(movie = it) }
-//        }
-//
-//        pagingItems.apply {
-//            when {
-//                loadState.append is LoadState.Loading -> {
-//                    item {
-//                        CircularProgressIndicator(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(16.dp)
-//                        )
-//                    }
-//                }
-//
-//                loadState.append is LoadState.Error -> {
-//                    val errorState = pagingItems.loadState.append as LoadState.Error
-//                    item {
-//                        Text(
-//                            text = "Error: ${errorState.error.localizedMessage}",
-//                            color = Color.Red,
-//                            textAlign = TextAlign.Center,
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(16.dp)
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
-
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MovieCard(
     moviePoster: Int,
@@ -217,55 +183,123 @@ fun MovieCard(
     movieYear: String,
     movieCountry: String,
     movieGenres: List<String>,
-    movieRating: Float
+    movieRating: Int
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp)
+            .padding(10.dp),
+        colors = androidx.compose.material3.CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        ),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(10.dp)
         ) {
-            // Постер фильма слева
             Image(
                 painter = painterResource(id = moviePoster),
                 contentDescription = null,
                 modifier = Modifier
-                    .size(120.dp)
-                    .clip(MaterialTheme.shapes.medium)
+                    .width(95.dp)
+                    .height(130.dp),
+                contentScale = ContentScale.Crop
             )
 
             Spacer(modifier = Modifier.width(10.dp))
 
-            // Основная информация фильма (название, год, страна)
             Column {
-                Text(text = movieName, style = TextStyle(fontWeight = FontWeight.Bold))
-                Text(text = movieYear)
-                Text(text = movieCountry)
+                Text(
+                    text = movieName,
+
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(700),
+                        color = Color(0xFFFFFFFF),
+                    )
+                )
+                Spacer(modifier = Modifier.height(11.dp))
+                Text(
+                    text = "$movieYear · $movieCountry",
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFFFFFFFF),
+                    )
+                )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 // Жанры фильма
-                Text(
-                    text = movieGenres.joinToString(separator = ", "),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+
+                val maxGenres = 5
+                val visibleGenres = movieGenres.take(maxGenres)
+                val showEllipsis = movieGenres.size > maxGenres
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    visibleGenres.forEach { genre ->
+                        Text(
+                            text = genre,
+                            style = TextStyle(
+                                fontSize = 13.sp,
+                                fontFamily = FontFamily(Font(R.font.inter)),
+                                fontWeight = FontWeight(400),
+                                color = Color(0xFFFFFFFF)
+                            ),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .background(
+                                    color = Color(0xFF404040),
+                                    shape = RoundedCornerShape(size = 5.dp)
+                                )
+                                .padding(start = 6.dp, top = 2.dp, end = 6.dp, bottom = 2.dp)
+                        )
+                    }
+                    if (showEllipsis) {
+                        Text(
+                            text = "...",
+                            style = TextStyle(
+                                fontSize = 13.sp,
+                                fontFamily = FontFamily(Font(R.font.inter)),
+                                fontWeight = FontWeight(400),
+                                color = Color(0xFFFFFFFF),
+                                textAlign = TextAlign.Center,
+                            ),
+                            modifier = Modifier
+                                .padding(top = 2.dp, bottom = 2.dp)
+                        )
+                    }
+                }
+
             }
 
-            Spacer(modifier = Modifier.weight(1f))
 
             // Оценка фильма
-            Text(
-                text = movieRating.toString(),
-                modifier = Modifier
-                    .padding(8.dp)
-                    .clip(MaterialTheme.shapes.small)
-            )
+            Log.d("MovieCard", "movieRating: $movieRating")
+            val img = when (movieRating) {
+                2 -> R.drawable.mark_2
+                3 -> R.drawable.mark_3
+                4 -> R.drawable.mark_4
+                6 -> R.drawable.mark_6
+                8 -> R.drawable.mark_8
+                9 -> R.drawable.mark_9
+                else -> null
+            }
+            Log.d("MovieCard", "img: $img")
+            if (img != null) {
+                Image(
+                    painter = painterResource(id = img),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(38.dp)
+                        .height(26.dp)
+                )
+            }
         }
     }
 }
-
