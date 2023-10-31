@@ -89,10 +89,118 @@ fun AppNavigation(
                         Review("4", 2),
                         Review("5", 1),
                     )
+                ),                Movie(
+                    "Какое то очень большое Название фильма 2",
+                    R.drawable.ic_launcher_background,
+                    2023,
+                    "США",
+                    listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
+                    listOf(
+                        Review("1", 5),
+                        Review("2", 4),
+                        Review("3", 3),
+                        Review("4", 2),
+                        Review("5", 1),
+                    )
+                ),                Movie(
+                    "Какое то очень большое Название фильма 2",
+                    R.drawable.ic_launcher_background,
+                    2023,
+                    "США",
+                    listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
+                    listOf(
+                        Review("1", 5),
+                        Review("2", 4),
+                        Review("3", 3),
+                        Review("4", 2),
+                        Review("5", 1),
+                    )
+                ),                Movie(
+                    "Какое то очень большое Название фильма 2",
+                    R.drawable.ic_launcher_background,
+                    2023,
+                    "США",
+                    listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
+                    listOf(
+                        Review("1", 5),
+                        Review("2", 4),
+                        Review("3", 3),
+                        Review("4", 2),
+                        Review("5", 1),
+                    )
+                ),
+                Movie(
+                    "Какое то очень большое Название фильма 2",
+                    R.drawable.ic_launcher_background,
+                    2023,
+                    "США",
+                    listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
+                    listOf(
+                        Review("1", 5),
+                        Review("2", 4),
+                        Review("3", 3),
+                        Review("4", 2),
+                        Review("5", 1),
+                    )
+                ),
+                Movie(
+                    "Какое то очень большое Название фильма 2",
+                    R.drawable.ic_launcher_background,
+                    2023,
+                    "США",
+                    listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
+                    listOf(
+                        Review("1", 5),
+                        Review("2", 4),
+                        Review("3", 3),
+                        Review("4", 2),
+                        Review("5", 1),
+                    )
+                ),
+                Movie(
+                    "Какое то очень большое Название фильма 2",
+                    R.drawable.ic_launcher_background,
+                    2023,
+                    "США",
+                    listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
+                    listOf(
+                        Review("1", 5),
+                        Review("2", 4),
+                        Review("3", 3),
+                        Review("4", 2),
+                        Review("5", 1),
+                    )
+                ),
+                Movie(
+                    "Какое то очень большое Название фильма 2",
+                    R.drawable.ic_launcher_background,
+                    2023,
+                    "США",
+                    listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
+                    listOf(
+                        Review("1", 5),
+                        Review("2", 4),
+                        Review("3", 3),
+                        Review("4", 2),
+                        Review("5", 1),
+                    )
+                ),
+                Movie(
+                    "Какое то очень большое Название фильма 2",
+                    R.drawable.ic_launcher_background,
+                    2023,
+                    "США",
+                    listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
+                    listOf(
+                        Review("1", 5),
+                        Review("2", 4),
+                        Review("3", 3),
+                        Review("4", 2),
+                        Review("5", 1),
+                    )
                 ),
             )
-            val testMovies: List<Movie> = listOf()
-            MainScreen(navController = navController, viewModel = movieViewModel, movies = testMovies)
+            MainScreen(navController = navController, viewModel = movieViewModel, movies = movies)
         }
         composable(Screen.Profile.route) {
             ProfileScreen(navController = navController)

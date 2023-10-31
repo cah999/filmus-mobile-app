@@ -50,7 +50,7 @@ import kotlin.math.min
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(navController: NavController, viewModel: MovieViewModel, movies: List<Movie>) {
-    val pagerState = rememberPagerState { min(4, movies.size) } // Карусель с первыми 4 фильмами
+    val pagerState = rememberPagerState { min(4, movies.size) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -65,7 +65,7 @@ fun MainScreen(navController: NavController, viewModel: MovieViewModel, movies: 
 
             if (movies.isNotEmpty()) {
                 Carousel(
-                    movies = movies.subList(0, min(4, movies.size)), // Первые 4 фильма для карусели
+                    movies = movies.subList(0, min(4, movies.size)),
                     pagerState = pagerState,
                 )
             } else {
@@ -81,14 +81,12 @@ fun MainScreen(navController: NavController, viewModel: MovieViewModel, movies: 
 
         item {
             Text(
-                text = "Каталог",
-                style = TextStyle(
+                text = "Каталог", style = TextStyle(
                     fontSize = 24.sp,
                     fontFamily = FontFamily(Font(R.font.inter)),
                     fontWeight = FontWeight(700),
                     color = Color.White,
-                ),
-                modifier = Modifier.padding(start = 16.dp, bottom = 15.dp, top = 16.dp)
+                ), modifier = Modifier.padding(start = 16.dp, bottom = 15.dp, top = 16.dp)
             )
         }
 
