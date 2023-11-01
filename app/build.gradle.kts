@@ -86,9 +86,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.4")
     implementation("androidx.compose.material:material:1.5.4")
     implementation("com.valentinilk.shimmer:compose-shimmer:1.2.0")
-
-
-
+    implementation("com.github.a914-gowtham:compose-ratingbar:1.3.8")
 
 
 

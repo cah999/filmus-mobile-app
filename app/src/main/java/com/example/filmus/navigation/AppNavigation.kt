@@ -19,18 +19,18 @@ import com.example.filmus.ui.screens.registration.RegistrationScreen
 import com.example.filmus.ui.screens.splash.LoadingScreen
 import com.example.filmus.ui.screens.welcome.WelcomeScreen
 import com.example.filmus.viewmodel.login.LoginViewModel
-import com.example.filmus.viewmodel.mainscreen.MovieViewModel
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
+import java.util.Date
 
 @Composable
 fun AppNavigation(
     navController: NavHostController,
     loginViewModel: LoginViewModel,
     registrationViewModel: RegistrationViewModel,
-    movieViewModel: MovieViewModel,
     startScreen: Screen
 ) {
-    NavHost(navController,
+    NavHost(
+        navController,
         startDestination = startScreen.route,
         popEnterTransition = { fadeIn() },
         popExitTransition = { fadeOut() }
@@ -204,6 +204,46 @@ fun AppNavigation(
         }
         composable(Screen.Profile.route) {
             ProfileScreen(navController = navController)
+        }
+        composable(Screen.Movie.route) {
+            val author = Author(
+                userId = "user123",
+                nickname = "MovieBuff",
+                avatar = "https://avatar-url.com/avatar.png"
+            )
+            // todo почему оценки не все? Что делать если средняя та, которой нет?
+            val review = Review(
+                id = "review456",
+                rating = 6,
+                reviewText = "A fantastic movie! Loved it!",
+                isAnonymous = false,
+                createDateTime = Date(),
+                author = author
+            )
+            val review2 = Review(
+                id = "review4536",
+                rating = 9,
+                reviewText = "NO way I LOVE IT SOSOSOSOSOSOSOSOOSOSOOSOSOS MUCH",
+                isAnonymous = true,
+                createDateTime = Date(),
+                author = author
+            )
+            val movie = DetailedMovie(
+                name = "Inception",
+                poster = "https://poster-url.com/inception.png",
+                year = 2010,
+                country = "USA",
+                genres = listOf("Action", "Adventure", "Sci-Fi"),
+                reviews = listOf(review, review2),
+                time = 148,
+                tagLine = "The dream is real",
+                description = "Inception is a 2010 science fiction action film some long long long long long long long long long lnoglnognglnglnlgnolgafsaljkfhjblsafkjasfkLGJGKLFKGLDJSGFKHJLASDGKJGHKJSDAHKJLGSDAHKJLGSDALK;HJGSHLDJA;GLH;SADGLSDLAGHJL",
+                director = "Christopher Nolan",
+                budget = 160_000_000,
+                fees = 828_322_032,
+                ageLimit = 13
+            )
+            MovieDetailsScreen(movie = movie, isFavorite = false, onFavoriteToggle = { })
         }
     }
 }
