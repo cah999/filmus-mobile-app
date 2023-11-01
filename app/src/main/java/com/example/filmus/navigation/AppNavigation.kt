@@ -74,7 +74,7 @@ fun AppNavigation(
                 nickname = "MovieBuff",
                 avatar = "https://avatar-url.com/avatar.png"
             )
-
+            // todo почему оценки не все? Что делать если средняя та, которой нет?
             val review = Review(
                 id = "review456",
                 rating = 6,
@@ -83,14 +83,21 @@ fun AppNavigation(
                 createDateTime = Date(),
                 author = author
             )
-
+            val review2 = Review(
+                id = "review4536",
+                rating = 9,
+                reviewText = "NO way I LOVE IT SOSOSOSOSOSOSOSOOSOSOOSOSOS MUCH",
+                isAnonymous = true,
+                createDateTime = Date(),
+                author = author
+            )
             val movie = DetailedMovie(
                 name = "Inception",
                 poster = "https://poster-url.com/inception.png",
                 year = 2010,
                 country = "USA",
                 genres = listOf("Action", "Adventure", "Sci-Fi"),
-                reviews = listOf(review, review, review, review, review, review),
+                reviews = listOf(review, review2),
                 time = 148,
                 tagLine = "The dream is real",
                 description = "Inception is a 2010 science fiction action film some long long long long long long long long long lnoglnognglnglnlgnolgafsaljkfhjblsafkjasfkLGJGKLFKGLDJSGFKHJLASDGKJGHKJSDAHKJLGSDAHKJLGSDALK;HJGSHLDJA;GLH;SADGLSDLAGHJL",

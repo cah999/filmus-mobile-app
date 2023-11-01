@@ -1,5 +1,6 @@
 package com.example.filmus.ui.screens.main
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,19 +22,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,10 +42,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -95,7 +96,7 @@ fun MovieDetailsScreen(
     movie: DetailedMovie, isFavorite: Boolean, onFavoriteToggle: (Boolean) -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val maxScrollDistance = with(LocalDensity.current) { 540.dp.toPx() }.toInt()
+    val maxScrollDistance = with(LocalDensity.current) { (569.5).dp.toPx() }.toInt()
 
     LaunchedEffect(scrollState.value) {
         if (scrollState.value <= maxScrollDistance / 2) {
@@ -148,7 +149,7 @@ fun MovieDetailsScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Column(Modifier.padding(16.dp)) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -166,13 +167,17 @@ fun MovieDetailsScreen(
                     IconButton(
                         onClick = { onFavoriteToggle(!isFavorite) },
                         modifier = Modifier
-                            .then(Modifier.size(40.dp))
                             .background(Color(0xFF404040), shape = CircleShape)
+                            .width(40.dp)
+                            .height(40.dp)
                     ) {
                         Icon(
                             imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = null,
-                            tint = if (isFavorite) Color(0xFFFC315E) else Color(0xFFFFFFFF)
+                            tint = if (isFavorite) Color(0xFFFC315E) else Color(0xFFFFFFFF),
+                            modifier = Modifier
+                                .width(24.dp)
+                                .height(24.dp)
                         )
                     }
 
@@ -182,8 +187,11 @@ fun MovieDetailsScreen(
                 var isExpanded by remember { mutableStateOf(false) }
                 val maxLines = if (isExpanded) Int.MAX_VALUE else 4
 
+                AnimatedVisibility(visible = !isExpanded) {
+                    Spacer(modifier = Modifier.height(5.dp))
+                }
                 Text(
-                    text = movie.description.take(400), // Показываем только первые 400 символов
+                    text = movie.description,
                     style = TextStyle(
                         fontSize = 14.sp,
                         fontFamily = FontFamily(Font(R.font.inter)),
@@ -198,9 +206,7 @@ fun MovieDetailsScreen(
                                 colors = listOf(
                                     Color.Transparent,
                                     if (isExpanded) Color.Transparent else Color(0xFF1D1D1D)
-                                ),
-                                startY = size.height / 2,
-                                endY = size.height
+                                ), startY = size.height / 2, endY = size.height
                             )
                             onDrawWithContent {
                                 drawContent()
@@ -210,51 +216,41 @@ fun MovieDetailsScreen(
                 )
 
                 Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .clickable { isExpanded = !isExpanded }
-                        .fillMaxWidth()
-                        .drawWithCache {
-                            val gradient = Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color(0xFF1D1D1D)),
-                                startY = size.height / 10,
-                                endY = size.height
-                            )
-                            onDrawWithContent {
-                                drawRect(gradient, blendMode = BlendMode.Darken)
-                                drawContent()
-                            }
-                        },
-
-                    ) {
-                    Row {
-                        Text(
-                            text = "Подробнее",
-                            style = TextStyle(
-                                fontSize = 14.sp,
-                                fontFamily = FontFamily(Font(R.font.inter)),
-                                fontWeight = FontWeight(500),
-                                color = Color(0xFFFC315E),
-                            )
+                        .clickable { isExpanded = !isExpanded }) {
+                    Text(
+                        text = "Подробнее",
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontFamily = FontFamily(Font(R.font.inter)),
+                            fontWeight = FontWeight(500),
+                            color = Color(0xFFFC315E),
                         )
-                        Icon(
-                            if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = Color(0xFFFC315E)
-                        )
-                    }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = Color(0xFFFC315E)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = "Жанры:", style = TextStyle(
-                        fontWeight = FontWeight.Bold, fontSize = 16.sp
-                    )
+                    text = "Жанры", style = TextStyle(
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(700),
+                        color = Color(0xFFFFFFFF),
+
+                        )
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     for (genre in movie.genres) {
@@ -267,8 +263,6 @@ fun MovieDetailsScreen(
 
                                 textAlign = TextAlign.Center,
                             ), modifier = Modifier
-                                .width(73.dp)
-                                .height(28.dp)
                                 .background(
                                     color = Color(0xFFFC315E),
                                     shape = RoundedCornerShape(size = 5.dp)
@@ -281,9 +275,13 @@ fun MovieDetailsScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "О фильме:", style = TextStyle(
-                        fontWeight = FontWeight.Bold, fontSize = 16.sp
-                    )
+                    text = "О фильме", style = TextStyle(
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(700),
+                        color = Color(0xFFFFFFFF),
+
+                        )
                 )
 
                 val infoModifier = Modifier
@@ -302,43 +300,108 @@ fun MovieDetailsScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Text(
-                    text = "Отзывы:", style = TextStyle(
-                        fontWeight = FontWeight.Bold, fontSize = 16.sp
-                    )
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Отзывы", style = TextStyle(
+                            fontSize = 16.sp,
+                            fontFamily = FontFamily(Font(R.font.inter)),
+                            fontWeight = FontWeight(700),
+                            color = Color(0xFFFFFFFF),
 
-                Spacer(modifier = Modifier.height(10.dp))
+                            )
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(
+                        onClick = { },
+                        modifier = Modifier
+                            .background(Color(0xFFFC315E), shape = CircleShape)
+                            .width(32.dp)
+                            .height(32.dp)
+                    ) {
+                        Icon(
+                            painterResource(id = R.drawable.plus),
+                            contentDescription = null,
+                            tint = Color(0xFFFFFFFF),
+                            modifier = Modifier
+                                .width(24.dp)
+                                .height(24.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(15.dp))
 
                 if (movie.reviews.isNotEmpty()) {
                     movie.reviews.forEach { review ->
                         ReviewCard(review)
+                        if (review != movie.reviews.last()) {
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
                     }
                 } else {
-                    Text(text = "Нет отзывов", fontSize = 14.sp, textAlign = TextAlign.Center)
+                    Text(
+                        text = "Нет отзывов", style = TextStyle(
+                            fontSize = 16.sp,
+                            fontFamily = FontFamily(Font(R.font.inter)),
+                            fontWeight = FontWeight(50),
+                            color = Color(0xFFFFFFFF),
+
+                            ),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
         }
     })
 
     if (hasScrolledToTitle) {
-        TopAppBar(title = { Text(text = movie.name) }, navigationIcon = {
-            IconButton(onClick = { /* Handle back navigation */ }) {
-                Icon(
-                    Icons.Default.ArrowBack, contentDescription = null, tint = Color.Black
+        CenterAlignedTopAppBar(
+            colors = TopAppBarDefaults.mediumTopAppBarColors(
+                containerColor = Color(0xFF1D1D1D)
+            ),
+            title = {
+                Text(
+                    text = movie.name,
+                    style = TextStyle(
+                        fontSize = 24.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(700),
+                        color = Color(0xFFFFFFFF),
+
+                        ),
+                    textAlign = TextAlign.Center,
                 )
-            }
-        }, actions = {
-            IconButton(
-                onClick = { onFavoriteToggle(!isFavorite) },
-                modifier = Modifier.padding(end = 16.dp)
-            ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = null
-                )
-            }
-        })
+            }, navigationIcon = {
+                IconButton(onClick = { /* Handle back navigation */ }) {
+                    Icon(
+                        painterResource(id = R.drawable.back), contentDescription = null
+                    )
+                }
+            }, actions = {
+                Box(Modifier.padding(end = 15.dp), contentAlignment = Alignment.CenterEnd) {
+                    IconButton(
+                        onClick = { onFavoriteToggle(!isFavorite) },
+                        modifier = Modifier
+                            .background(Color(0xFF404040), shape = CircleShape)
+                            .width(40.dp)
+                            .height(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = null,
+                            tint = if (isFavorite) Color(0xFFFC315E) else Color(0xFFFFFFFF),
+                            modifier = Modifier
+                                .width(24.dp)
+                                .height(24.dp)
+                        )
+                    }
+                }
+            })
     }
 }
 
@@ -349,38 +412,67 @@ fun InfoRow(title: String, value: String, modifier: Modifier = Modifier) {
     ) {
         Text(
             text = title,
-            style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 14.sp),
+            style = TextStyle(
+                fontSize = 14.sp,
+                fontFamily = FontFamily(Font(R.font.inter)),
+                fontWeight = FontWeight(400),
+                color = Color(0xFF909499),
+
+                ),
             modifier = Modifier.width(100.dp)
         )
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = value, style = TextStyle(fontSize = 14.sp)
+            text = value, style = TextStyle(
+                fontSize = 14.sp,
+                fontFamily = FontFamily(Font(R.font.inter)),
+                fontWeight = FontWeight(400),
+                color = Color(0xFFFFFFFF),
+
+                )
         )
     }
 }
 
 @Composable
 fun ReviewCard(review: Review) {
-    val isUser = false // todo check if user review
+    val isUser = true // todo check if user review
     Column {
-        Row(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background),
+                painter = if (review.isAnonymous) painterResource(id = R.drawable.anonymous) else painterResource(
+                    id = R.drawable.ic_launcher_background
+                ),
                 contentDescription = null,
                 modifier = Modifier
                     .size(40.dp)
-                    .background(
-                        color = Color(0xFFEBEDF0), shape = RoundedCornerShape(size = 100.dp)
-                    ),
+                    .clip(CircleShape),
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(10.dp))
-            Column(Modifier.height(40.dp)) {
+            Column() {
                 Text(
-                    text = review.author.nickname,
-                    style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    text = if (review.isAnonymous) "Анонимный пользователь" else review.author.nickname,
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(500),
+                        color = Color(0xFFFFFFFF),
+
+                        ),
+                    textAlign = TextAlign.Center
                 )
                 if (isUser) Text(
-                    text = "Ваш отзыв", style = TextStyle(fontSize = 12.sp)
+                    text = "мой отзыв", style = TextStyle(
+                        fontSize = 13.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFF909499),
+
+                        )
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -390,26 +482,48 @@ fun ReviewCard(review: Review) {
                 Image(
                     painter = painterResource(id = img),
                     contentDescription = null,
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier
+                        .width(38.dp)
+                        .height(26.dp),
                     contentScale = ContentScale.Crop
                 )
             }
-            if (isUser) Spacer(modifier = Modifier.width(10.dp))
-            IconButton(onClick = { /* Handle edit review */ }) {
-                Icon(
-                    Icons.Default.Edit,
-                    contentDescription = null,
-                )
+            if (isUser) {
+                Spacer(modifier = Modifier.width(10.dp))
+                IconButton(
+                    onClick = { },
+                    modifier = Modifier
+                        .background(Color(0xFF404040), shape = CircleShape)
+                        .width(26.dp)
+                        .height(26.dp)
+
+                ) {
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(20.dp)
+                            .height(20.dp)
+                            .graphicsLayer { rotationZ = 90f }
+                    )
+                }
             }
         }
         Text(
             text = review.reviewText,
-            style = TextStyle(fontSize = 14.sp),
+            style = TextStyle(
+                fontSize = 14.sp,
+                fontFamily = FontFamily(Font(R.font.inter)),
+                fontWeight = FontWeight(400),
+                color = Color(0xFFFFFFFF),
+
+                ),
             modifier = Modifier.padding(top = 10.dp)
         )
         Spacer(modifier = Modifier.height(5.dp))
+        val dateFormat = java.text.SimpleDateFormat("dd.MM.yyyy")
         Text(
-            text = review.createDateTime.toString(),
+            text = dateFormat.format(review.createDateTime),
             style = TextStyle(fontSize = 12.sp, color = Color(0xFF8C8C8C))
         )
     }
