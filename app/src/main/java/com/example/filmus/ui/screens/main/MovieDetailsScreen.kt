@@ -1,10 +1,10 @@
 package com.example.filmus.ui.screens.main
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,9 +26,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,11 +36,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -51,16 +55,13 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.filmus.R
 import java.util.Date
 
 data class Author(
-    val userId: String,
-    val nickname: String,
-    val avatar: String
+    val userId: String, val nickname: String, val avatar: String
 )
 
 data class Review(
@@ -91,128 +92,162 @@ data class DetailedMovie(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MovieDetailsScreen(
-    movie: DetailedMovie,
-    isFavorite: Boolean,
-    onFavoriteToggle: (Boolean) -> Unit
+    movie: DetailedMovie, isFavorite: Boolean, onFavoriteToggle: (Boolean) -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val maxScrollDistance = with(LocalDensity.current) { 562.dp.toPx() }.toInt()
+    val maxScrollDistance = with(LocalDensity.current) { 540.dp.toPx() }.toInt()
 
-//    val coroutineScope = rememberCoroutineScope()
-
-//    LaunchedEffect(scrollState.value) {
-//        if (scrollState.value <= maxScrollDistance) {
-//            coroutineScope.launch {
-//                scrollState.animateScrollTo(maxScrollDistance)
-//            }
-//        }
-//    }
+    LaunchedEffect(scrollState.value) {
+        if (scrollState.value <= maxScrollDistance / 2) {
+            scrollState.animateScrollTo(0)
+        } else if (scrollState.value <= maxScrollDistance / 2) {
+            scrollState.animateScrollTo(maxScrollDistance)
+        }
+    }
 
     val hasScrolledToTitle = scrollState.value >= maxScrollDistance
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = Color(0xFF1D1D1D)
-                ),
-                title = { Text(text = "Movie Details", color = Color.White) },
-                navigationIcon = {
-                    IconButton(onClick = { /* Handle back navigation */ }) {
-                        Icon(
-                            Icons.Default.KeyboardArrowLeft,
-                            contentDescription = null,
-                            tint = Color.White
+    Scaffold(containerColor = Color(0xFF1D1D1D), topBar = {
+        CenterAlignedTopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+            containerColor = Color(0xFF1D1D1D)
+        ), title = {}, navigationIcon = {
+            IconButton(onClick = { /* Handle back navigation */ }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.back),
+                    contentDescription = null,
+                )
+            }
+        }, actions = {})
+    }, content = {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(it)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_launcher_background), // Замените на ресурс вашего постера
+                contentDescription = null,
+                modifier = Modifier
+                    .width(360.dp)
+                    .height(497.dp)
+                    .drawWithCache {
+                        val gradient = Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color(0xFF1D1D1D)),
+                            startY = size.height / 3,
+                            endY = size.height
                         )
-                    }
-                },
-                actions = {
+                        onDrawWithContent {
+                            drawContent()
+                            drawRect(gradient, blendMode = BlendMode.Darken)
+                        }
+                    },
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Column(Modifier.padding(16.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    getFilmMark(movie.reviews.map { it.rating }.average().toInt())
+                    Text(
+                        text = movie.name, style = TextStyle(
+                            fontSize = 24.sp,
+                            fontFamily = FontFamily(Font(R.font.inter)),
+                            fontWeight = FontWeight(700),
+                            color = Color(0xFFFFFFFF),
+                            textAlign = TextAlign.Center,
+                        ), modifier = Modifier.width(212.dp)
+                    )
                     IconButton(
                         onClick = { onFavoriteToggle(!isFavorite) },
-                        modifier = Modifier.padding(end = 16.dp)
+                        modifier = Modifier
+                            .then(Modifier.size(40.dp))
+                            .background(Color(0xFF404040), shape = CircleShape)
                     ) {
                         Icon(
-                            imageVector = if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = null,
-                            tint = Color.White
+                            tint = if (isFavorite) Color(0xFFFC315E) else Color(0xFFFFFFFF)
                         )
                     }
-                }
-            )
-        },
-        content = {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(it)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background), // Замените на ресурс вашего постера
-                    contentDescription = null,
-                    modifier = Modifier
-                        .width(360.dp)
-                        .height(497.dp),
-                    contentScale = ContentScale.Crop
-                )
 
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = movie.reviews.map { it.rating }.average().toString(),
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
-                    )
-                    Text(
-                        text = movie.name,
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        )
-                    )
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                        contentDescription = null,
-                        tint = Color.Black
-                    )
                 }
                 Spacer(modifier = Modifier.height(20.dp))
 
                 var isExpanded by remember { mutableStateOf(false) }
+                val maxLines = if (isExpanded) Int.MAX_VALUE else 4
 
-                if (isExpanded) {
-                    Text(
-                        text = movie.description,
-                        style = TextStyle(fontSize = 16.sp)
-                    )
+                Text(
+                    text = movie.description.take(400), // Показываем только первые 400 символов
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFFCCCCCC),
+                    ),
+                    maxLines = maxLines,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .drawWithCache {
+                            val gradient = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    if (isExpanded) Color.Transparent else Color(0xFF1D1D1D)
+                                ),
+                                startY = size.height / 2,
+                                endY = size.height
+                            )
+                            onDrawWithContent {
+                                drawContent()
+                                drawRect(gradient, blendMode = BlendMode.Darken)
+                            }
+                        },
+                )
 
-                    Spacer(modifier = Modifier.height(10.dp))
-                } else {
-                    Text(
-                        text = movie.description.take(100), // Показываем только первые 100 символов
-                        style = TextStyle(fontSize = 16.sp)
-                    )
+                Row(
+                    modifier = Modifier
+                        .clickable { isExpanded = !isExpanded }
+                        .fillMaxWidth()
+                        .drawWithCache {
+                            val gradient = Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color(0xFF1D1D1D)),
+                                startY = size.height / 10,
+                                endY = size.height
+                            )
+                            onDrawWithContent {
+                                drawRect(gradient, blendMode = BlendMode.Darken)
+                                drawContent()
+                            }
+                        },
 
-                    Row(
-                        Modifier.clickable { isExpanded = true },
                     ) {
-                        Row {
-                            Text(text = "Подробнее")
-                            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
-                        }
+                    Row {
+                        Text(
+                            text = "Подробнее",
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontFamily = FontFamily(Font(R.font.inter)),
+                                fontWeight = FontWeight(500),
+                                color = Color(0xFFFC315E),
+                            )
+                        )
+                        Icon(
+                            if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = Color(0xFFFC315E)
+                        )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = "Жанры:",
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                    text = "Жанры:", style = TextStyle(
+                        fontWeight = FontWeight.Bold, fontSize = 16.sp
                     )
                 )
                 Spacer(modifier = Modifier.height(10.dp))
@@ -224,16 +259,14 @@ fun MovieDetailsScreen(
                 ) {
                     for (genre in movie.genres) {
                         Text(
-                            text = genre,
-                            style = TextStyle(
+                            text = genre, style = TextStyle(
                                 fontSize = 15.sp,
                                 fontFamily = FontFamily(Font(R.font.inter)),
                                 fontWeight = FontWeight(500),
                                 color = Color(0xFFFFFFFF),
 
                                 textAlign = TextAlign.Center,
-                            ),
-                            modifier = Modifier
+                            ), modifier = Modifier
                                 .width(73.dp)
                                 .height(28.dp)
                                 .background(
@@ -248,10 +281,8 @@ fun MovieDetailsScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "О фильме:",
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                    text = "О фильме:", style = TextStyle(
+                        fontWeight = FontWeight.Bold, fontSize = 16.sp
                     )
                 )
 
@@ -272,10 +303,8 @@ fun MovieDetailsScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "Отзывы:",
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                    text = "Отзывы:", style = TextStyle(
+                        fontWeight = FontWeight.Bold, fontSize = 16.sp
                     )
                 )
 
@@ -290,33 +319,26 @@ fun MovieDetailsScreen(
                 }
             }
         }
-    )
+    })
 
     if (hasScrolledToTitle) {
-        // Кастомный TopAppBar для скролла
-        TopAppBar(
-            title = { Text(text = movie.name) },
-            navigationIcon = {
-                IconButton(onClick = { /* Handle back navigation */ }) {
-                    Icon(
-                        Icons.Default.ArrowBack,
-                        contentDescription = null,
-                        tint = Color.Black
-                    )
-                }
-            },
-            actions = {
-                IconButton(
-                    onClick = { onFavoriteToggle(!isFavorite) },
-                    modifier = Modifier.padding(end = 16.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = null
-                    )
-                }
+        TopAppBar(title = { Text(text = movie.name) }, navigationIcon = {
+            IconButton(onClick = { /* Handle back navigation */ }) {
+                Icon(
+                    Icons.Default.ArrowBack, contentDescription = null, tint = Color.Black
+                )
             }
-        )
+        }, actions = {
+            IconButton(
+                onClick = { onFavoriteToggle(!isFavorite) },
+                modifier = Modifier.padding(end = 16.dp)
+            ) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = null
+                )
+            }
+        })
     }
 }
 
@@ -331,8 +353,7 @@ fun InfoRow(title: String, value: String, modifier: Modifier = Modifier) {
             modifier = Modifier.width(100.dp)
         )
         Text(
-            text = value,
-            style = TextStyle(fontSize = 14.sp)
+            text = value, style = TextStyle(fontSize = 14.sp)
         )
     }
 }
@@ -348,8 +369,7 @@ fun ReviewCard(review: Review) {
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        color = Color(0xFFEBEDF0),
-                        shape = RoundedCornerShape(size = 100.dp)
+                        color = Color(0xFFEBEDF0), shape = RoundedCornerShape(size = 100.dp)
                     ),
                 contentScale = ContentScale.Crop
             )
@@ -359,24 +379,13 @@ fun ReviewCard(review: Review) {
                     text = review.author.nickname,
                     style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 )
-                if (isUser)
-                    Text(
-                        text = "Ваш отзыв",
-                        style = TextStyle(fontSize = 12.sp)
-                    )
+                if (isUser) Text(
+                    text = "Ваш отзыв", style = TextStyle(fontSize = 12.sp)
+                )
             }
             Spacer(modifier = Modifier.weight(1f))
             val rating = review.rating
-            val img = when (rating) {
-                2 -> R.drawable.mark_2
-                3 -> R.drawable.mark_3
-                4 -> R.drawable.mark_4
-                6 -> R.drawable.mark_6
-                8 -> R.drawable.mark_8
-                9 -> R.drawable.mark_9
-                else -> null
-            }
-            Log.d("ReviewCard", "rating: $rating, img: $img")
+            val img = getFilmMarkImage(rating)
             if (img != null) {
                 Image(
                     painter = painterResource(id = img),
@@ -385,8 +394,7 @@ fun ReviewCard(review: Review) {
                     contentScale = ContentScale.Crop
                 )
             }
-            if (isUser)
-                Spacer(modifier = Modifier.width(10.dp))
+            if (isUser) Spacer(modifier = Modifier.width(10.dp))
             IconButton(onClick = { /* Handle edit review */ }) {
                 Icon(
                     Icons.Default.Edit,
@@ -407,39 +415,50 @@ fun ReviewCard(review: Review) {
     }
 }
 
+fun getFilmMarkImage(mark: Int): Int? {
+    return when (mark) {
+        2 -> R.drawable.mark_2
+        3 -> R.drawable.mark_3
+        4 -> R.drawable.mark_4
+        6 -> R.drawable.mark_6
+        8 -> R.drawable.mark_8
+        9 -> R.drawable.mark_9
+        else -> null
+    }
+}
 
-@Preview
 @Composable
-fun Details() {
-    val author = Author(
-        userId = "user123",
-        nickname = "MovieBuff",
-        avatar = "https://avatar-url.com/avatar.png"
-    )
+fun getFilmMark(mark: Int) {
+    val (fontColor, markColor) = remember {
+        when (mark) {
+            2 -> Pair(0xFFFFFFFF, 0xFFE64646)
+            3 -> Pair(0xFFFFFFFF, 0xFFF05C44)
+            4 -> Pair(0xFFFFFFFF, 0xFFFFA000)
+            6 -> Pair(0xFF1D1D1D, 0xFFFFD54F)
+            8 -> Pair(0xFF1D1D1D, 0xFFA3CD4A)
+            9 -> Pair(0xFFFFFFFF, 0xFF4BB34B)
+            else -> Pair(0xFFE64646, 0xFFFFFFFF)
+        }
+    }
 
-    val review = Review(
-        id = "review456",
-        rating = 6,
-        reviewText = "A fantastic movie! Loved it!",
-        isAnonymous = false,
-        createDateTime = Date(),
-        author = author
-    )
+    val text = mark.toFloat().toString()
 
-    val movie = DetailedMovie(
-        name = "Inception",
-        poster = "https://poster-url.com/inception.png",
-        year = 2010,
-        country = "USA",
-        genres = listOf("Action", "Adventure", "Sci-Fi"),
-        reviews = listOf(review, review, review, review, review, review),
-        time = 148,
-        tagLine = "The dream is real",
-        description = "Inception is a 2010 science fiction action film some long long long long long long long long long lnoglnognglnglnlgnolgafsaljkfhjblsafkjasfkLGJGKLFKGLDJSGFKHJLASDGKJGHKJSDAHKJLGSDAHKJLGSDALK;HJGSHLDJA;GLH;SADGLSDLAGHJL",
-        director = "Christopher Nolan",
-        budget = 160_000_000,
-        fees = 828_322_032,
-        ageLimit = 13
-    )
-    MovieDetailsScreen(movie = movie, isFavorite = false, onFavoriteToggle = { })
+    Box(
+        modifier = Modifier
+            .width(51.dp)
+            .height(26.dp)
+            .background(color = Color(markColor), shape = RoundedCornerShape(5.dp)),
+    ) {
+        Text(
+            text = text, style = TextStyle(
+                fontSize = 15.sp,
+                fontFamily = FontFamily(Font(R.font.inter)),
+                fontWeight = FontWeight(500),
+                color = Color(fontColor),
+            ), textAlign = TextAlign.Center, modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 2.dp)
+        )
+    }
+
 }
