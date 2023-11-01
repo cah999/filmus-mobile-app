@@ -41,12 +41,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.filmus.R
+import com.example.filmus.navigation.Screen
 import com.example.filmus.ui.fields.CustomDateField
 import com.example.filmus.ui.fields.CustomTextField
 import com.example.filmus.ui.fields.GenderSelection
+import com.example.filmus.viewmodel.profile.ProfileViewModel
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel) {
     var email by remember { mutableStateOf("") }
     var link by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
@@ -91,7 +93,10 @@ fun ProfileScreen(navController: NavController) {
         )
         Button(
             onClick = {
-
+                viewModel.logout()
+                navController.navigate(Screen.Welcome.route) {
+                    popUpTo(0)
+                }
             },
             modifier = Modifier
                 .width(328.dp)

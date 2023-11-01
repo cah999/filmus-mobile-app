@@ -1,4 +1,4 @@
-package com.example.filmus.ui.screens.main
+package com.example.filmus.ui.screens.movie
 
 
 import android.util.Log

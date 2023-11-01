@@ -1,18 +1,13 @@
-package com.example.filmus.ui.screens.main
+package com.example.filmus.ui.screens.movie
 
 
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -30,13 +25,9 @@ import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 
 // https://github.com/JetBrains/compose-multiplatform/issues/1831
-// Menu open/close animation.
-const val InTransitionDuration = 120
-const val OutTransitionDuration = 75
-private val MenuElevation = 8.dp
 
 @Composable
-fun DropdownMenuNoPaddingVeitical(
+fun DropdownMenuNoPadding(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
@@ -64,7 +55,6 @@ fun DropdownMenuNoPaddingVeitical(
         ) {
             DropdownMenuContent(
                 expandedStates = expandedStates,
-                transformOriginState = transformOriginState,
                 modifier = modifier,
                 content = content
             )
@@ -75,58 +65,11 @@ fun DropdownMenuNoPaddingVeitical(
 @Composable
 fun DropdownMenuContent(
     expandedStates: MutableTransitionState<Boolean>,
-    transformOriginState: MutableState<TransformOrigin>,
     modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable() (ColumnScope.() -> Unit)
 ) {
-    // Menu open/close animation.
-    val transition = updateTransition(expandedStates, "DropDownMenu")
+    updateTransition(expandedStates, "DropDownMenu")
 
-    val scale by transition.animateFloat(
-        transitionSpec = {
-            if (false isTransitioningTo true) {
-                // Dismissed to expanded
-                tween(
-                    durationMillis = InTransitionDuration,
-                    easing = LinearOutSlowInEasing
-                )
-            } else {
-                // Expanded to dismissed.
-                tween(
-                    durationMillis = 1,
-                    delayMillis = OutTransitionDuration - 1
-                )
-            }
-        }, label = ""
-    ) {
-        if (it) {
-            // Menu is expanded.
-            1f
-        } else {
-            // Menu is dismissed.
-            0.8f
-        }
-    }
-
-    val alpha by transition.animateFloat(
-        transitionSpec = {
-            if (false isTransitioningTo true) {
-                // Dismissed to expanded
-                tween(durationMillis = 30)
-            } else {
-                // Expanded to dismissed.
-                tween(durationMillis = OutTransitionDuration)
-            }
-        }, label = ""
-    ) {
-        if (it) {
-            // Menu is expanded.
-            1f
-        } else {
-            // Menu is dismissed.
-            0f
-        }
-    }
     Column(
         modifier = modifier
             .width(IntrinsicSize.Max),

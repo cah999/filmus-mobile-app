@@ -157,6 +157,9 @@ fun LoginScreen(
                     when (result) {
                         is LoginResult.Success -> {
                             navController.navigate(Screen.Main.route)
+                            {
+                                popUpTo(0)
+                            }
                         }
 
                         is LoginResult.Error -> {

@@ -9,7 +9,8 @@ sealed class Screen(val route: String, val title: String, val imageResource: Int
     object Registration : Screen("registration", "Registration", null)
     object RegistrationPwd : Screen("registrationPwd", "RegistrationPwd", null)
     object Main : Screen("main", "Главная", R.drawable.home)
-    object Movie : Screen("movie", "Movie", null)
+
+    object Movie : Screen("movie", "Детали фильма", null)
 
     object Favorite : Screen("favorite", "Любимое", R.drawable.favorite)
 
