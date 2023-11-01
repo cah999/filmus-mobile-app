@@ -59,8 +59,6 @@ class MainActivity : ComponentActivity() {
                         Screen.Login.route, Screen.Registration.route, Screen.RegistrationPwd.route -> {
                             TopBar(navController = navController)
                         }
-
-                        // todo null or top bar without elements??
                         else -> {}
                     }
                 }, bottomBar = {
