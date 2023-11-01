@@ -43,7 +43,10 @@ import com.example.filmus.ui.fields.CustomBigTextField
 import com.gowtham.ratingbar.RatingBar
 
 @Composable
-fun ReviewDialog(onDismissRequest: () -> Unit, onClick: () -> Unit) {
+fun ReviewDialog(
+    onDismissRequest: () -> Unit,
+    onClick: () -> Unit
+) {
     var rating by remember { mutableIntStateOf(0) }
     var reviewText by remember { mutableStateOf("") }
     var isAnonymous by remember { mutableStateOf(false) }
