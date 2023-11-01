@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+
 android {
     namespace = "com.example.filmus"
     compileSdk = 34
@@ -46,8 +47,10 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+
     }
 }
+
 
 dependencies {
 
@@ -84,6 +87,7 @@ dependencies {
     implementation("androidx.compose.material:material:1.5.4")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.navigation:navigation-compose:2.7.4")
+    implementation("com.github.a914-gowtham:compose-ratingbar:1.3.8")
 
 
 

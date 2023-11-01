@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +30,8 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,6 +60,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.filmus.R
@@ -97,6 +102,7 @@ fun MovieDetailsScreen(
 ) {
     val scrollState = rememberScrollState()
     val maxScrollDistance = with(LocalDensity.current) { (569.5).dp.toPx() }.toInt()
+    var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(scrollState.value) {
         if (scrollState.value <= maxScrollDistance / 2) {
@@ -150,8 +156,7 @@ fun MovieDetailsScreen(
             Column(Modifier.padding(16.dp)) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     getFilmMark(movie.reviews.map { it.rating }.average().toInt())
@@ -215,13 +220,10 @@ fun MovieDetailsScreen(
                         },
                 )
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clickable { isExpanded = !isExpanded }) {
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { isExpanded = !isExpanded }) {
                     Text(
-                        text = "Подробнее",
-                        style = TextStyle(
+                        text = "Подробнее", style = TextStyle(
                             fontSize = 14.sp,
                             fontFamily = FontFamily(Font(R.font.inter)),
                             fontWeight = FontWeight(500),
@@ -302,8 +304,7 @@ fun MovieDetailsScreen(
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = "Отзывы", style = TextStyle(
@@ -316,7 +317,7 @@ fun MovieDetailsScreen(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(
-                        onClick = { },
+                        onClick = { showDialog = true },
                         modifier = Modifier
                             .background(Color(0xFFFC315E), shape = CircleShape)
                             .width(32.dp)
@@ -350,9 +351,7 @@ fun MovieDetailsScreen(
                             fontWeight = FontWeight(50),
                             color = Color(0xFFFFFFFF),
 
-                            ),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                            ), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -360,11 +359,10 @@ fun MovieDetailsScreen(
     })
 
     if (hasScrolledToTitle) {
-        CenterAlignedTopAppBar(
-            colors = TopAppBarDefaults.mediumTopAppBarColors(
+        Column {
+            CenterAlignedTopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
                 containerColor = Color(0xFF1D1D1D)
-            ),
-            title = {
+            ), title = {
                 Text(
                     text = movie.name,
                     style = TextStyle(
@@ -402,8 +400,21 @@ fun MovieDetailsScreen(
                     }
                 }
             })
+            Divider(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color(0xA6545458),
+                thickness = 1.dp
+            )
+        }
+    }
+    if (showDialog) {
+        ReviewDialog(
+            onDismissRequest = { showDialog = false },
+            onClick = { showDialog = false }
+        )
     }
 }
+
 
 @Composable
 fun InfoRow(title: String, value: String, modifier: Modifier = Modifier) {
@@ -411,15 +422,13 @@ fun InfoRow(title: String, value: String, modifier: Modifier = Modifier) {
         modifier = modifier,
     ) {
         Text(
-            text = title,
-            style = TextStyle(
+            text = title, style = TextStyle(
                 fontSize = 14.sp,
                 fontFamily = FontFamily(Font(R.font.inter)),
                 fontWeight = FontWeight(400),
                 color = Color(0xFF909499),
 
-                ),
-            modifier = Modifier.width(100.dp)
+                ), modifier = Modifier.width(100.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
@@ -436,11 +445,10 @@ fun InfoRow(title: String, value: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun ReviewCard(review: Review) {
-    val isUser = true // todo check if user review
+    val isUser = true
     Column {
         Row(
-            Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
                 painter = if (review.isAnonymous) painterResource(id = R.drawable.anonymous) else painterResource(
@@ -488,37 +496,104 @@ fun ReviewCard(review: Review) {
                     contentScale = ContentScale.Crop
                 )
             }
+            var expanded by remember { mutableStateOf(false) }
+
             if (isUser) {
                 Spacer(modifier = Modifier.width(10.dp))
-                IconButton(
-                    onClick = { },
-                    modifier = Modifier
-                        .background(Color(0xFF404040), shape = CircleShape)
-                        .width(26.dp)
-                        .height(26.dp)
-
-                ) {
-                    Icon(
-                        Icons.Default.MoreVert,
-                        contentDescription = null,
+                Box {
+                    IconButton(
+                        onClick = { expanded = true },
                         modifier = Modifier
-                            .width(20.dp)
-                            .height(20.dp)
-                            .graphicsLayer { rotationZ = 90f }
-                    )
+                            .background(Color(0xFF404040), shape = CircleShape)
+                            .width(26.dp)
+                            .height(26.dp)
+                    ) {
+                        Icon(Icons.Default.MoreVert,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .width(20.dp)
+                                .height(20.dp)
+                                .graphicsLayer { rotationZ = 90f })
+                    }
+
+                    DropdownMenuNoPaddingVeitical(
+                        offset = DpOffset(0.dp, (8).dp),
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier
+                            .background(
+                                Color(0xFF404040), shape = RoundedCornerShape(10.dp)
+                            )
+                            .widthIn(177.dp),
+
+                        ) {
+                        DropdownMenuItem(colors = androidx.compose.material3.MenuDefaults.itemColors(
+                            textColor = Color(0xFFFFFFFF),
+                            trailingIconColor = Color(0xFFFFFFFF),
+                        ), contentPadding = PaddingValues(
+                            start = 8.dp, end = 8.dp, top = 10.dp, bottom = 10.dp
+                        ), trailingIcon = {
+                            Icon(
+                                painterResource(id = R.drawable.edit),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .width(24.dp)
+                                    .height(24.dp),
+                            )
+                        }, text = {
+                            Text(
+                                "Редактировать", style = TextStyle(
+                                    fontSize = 14.sp,
+                                    fontFamily = FontFamily(Font(R.font.inter)),
+                                    fontWeight = FontWeight(500),
+
+                                    textAlign = TextAlign.Center,
+                                )
+                            )
+
+                        }, onClick = {
+                            expanded = false
+                        })
+                        Divider(color = Color(0xFF55595D), thickness = 1.dp)
+                        DropdownMenuItem(colors = androidx.compose.material3.MenuDefaults.itemColors(
+                            textColor = Color(0xFFE64646),
+                            trailingIconColor = Color(0xFFE64646),
+                        ), contentPadding = PaddingValues(
+                            start = 8.dp, end = 8.dp, top = 10.dp, bottom = 10.dp
+                        ), trailingIcon = {
+                            Icon(
+                                painterResource(id = R.drawable.delete),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .width(24.dp)
+                                    .height(24.dp),
+                            )
+                        }, text = {
+                            Text(
+                                "Удалить", style = TextStyle(
+                                    fontSize = 14.sp,
+                                    fontFamily = FontFamily(Font(R.font.inter)),
+                                    fontWeight = FontWeight(500),
+
+                                    textAlign = TextAlign.Center,
+                                )
+                            )
+                        }, onClick = {
+                            expanded = false
+                        })
+                    }
                 }
             }
+
         }
         Text(
-            text = review.reviewText,
-            style = TextStyle(
+            text = review.reviewText, style = TextStyle(
                 fontSize = 14.sp,
                 fontFamily = FontFamily(Font(R.font.inter)),
                 fontWeight = FontWeight(400),
                 color = Color(0xFFFFFFFF),
 
-                ),
-            modifier = Modifier.padding(top = 10.dp)
+                ), modifier = Modifier.padding(top = 10.dp)
         )
         Spacer(modifier = Modifier.height(5.dp))
         val dateFormat = java.text.SimpleDateFormat("dd.MM.yyyy")
