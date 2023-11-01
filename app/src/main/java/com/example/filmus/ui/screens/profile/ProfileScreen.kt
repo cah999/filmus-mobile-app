@@ -89,6 +89,32 @@ fun ProfileScreen(navController: NavController) {
                 textAlign = TextAlign.Center,
             ), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
         )
+        Button(
+            onClick = {
+
+            },
+            modifier = Modifier
+                .width(328.dp)
+                .height(42.dp),
+            shape = RoundedCornerShape(size = 10.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+            ),
+
+            ) {
+            Text(
+                text = "Выйти из аккаунта",
+
+                style = TextStyle(
+                    fontSize = 15.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(600),
+                    color = Color(0xFFFC315E),
+
+                    textAlign = TextAlign.Center,
+                )
+            )
+        }
         Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = "Электронная почта",
