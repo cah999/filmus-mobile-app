@@ -24,6 +24,7 @@ import com.example.filmus.navigation.Screen
 import com.example.filmus.navigation.TopBar
 import com.example.filmus.ui.theme.FilmusTheme
 import com.example.filmus.viewmodel.login.LoginViewModel
+import com.example.filmus.viewmodel.mainscreen.MovieViewModel
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
 import com.example.filmus.viewmodel.registration.RegistrationViewModelFactory
 
@@ -47,6 +48,7 @@ class MainActivity : ComponentActivity() {
             }
 
             val loginViewModel = LoginViewModel(tokenManager)
+            val movieViewModel = MovieViewModel()
             val registrationViewModel: RegistrationViewModel by viewModels {
                 RegistrationViewModelFactory(tokenManager)
             }

@@ -10,8 +10,12 @@ import com.example.filmus.R
 import com.example.filmus.ui.screens.favorites.FavoritesScreen
 import com.example.filmus.ui.screens.favorites.Poster
 import com.example.filmus.ui.screens.login.LoginScreen
+import com.example.filmus.ui.screens.main.Author
+import com.example.filmus.ui.screens.main.DetailedMovie
+import com.example.filmus.ui.screens.main.FullReview
 import com.example.filmus.ui.screens.main.MainScreen
 import com.example.filmus.ui.screens.main.Movie
+import com.example.filmus.ui.screens.main.MovieDetailsScreen
 import com.example.filmus.ui.screens.main.Review
 import com.example.filmus.ui.screens.profile.ProfileScreen
 import com.example.filmus.ui.screens.registration.RegistrationPwdScreen
@@ -19,6 +23,7 @@ import com.example.filmus.ui.screens.registration.RegistrationScreen
 import com.example.filmus.ui.screens.splash.LoadingScreen
 import com.example.filmus.ui.screens.welcome.WelcomeScreen
 import com.example.filmus.viewmodel.login.LoginViewModel
+import com.example.filmus.viewmodel.mainscreen.MovieViewModel
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
 import java.util.Date
 
@@ -27,6 +32,7 @@ fun AppNavigation(
     navController: NavHostController,
     loginViewModel: LoginViewModel,
     registrationViewModel: RegistrationViewModel,
+    movieViewModel: MovieViewModel,
     startScreen: Screen
 ) {
     NavHost(
@@ -212,7 +218,7 @@ fun AppNavigation(
                 avatar = "https://avatar-url.com/avatar.png"
             )
             // todo почему оценки не все? Что делать если средняя та, которой нет?
-            val review = Review(
+            val review = FullReview(
                 id = "review456",
                 rating = 6,
                 reviewText = "A fantastic movie! Loved it!",
@@ -220,7 +226,7 @@ fun AppNavigation(
                 createDateTime = Date(),
                 author = author
             )
-            val review2 = Review(
+            val review2 = FullReview(
                 id = "review4536",
                 rating = 9,
                 reviewText = "NO way I LOVE IT SOSOSOSOSOSOSOSOOSOSOOSOSOS MUCH",

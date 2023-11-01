@@ -88,6 +88,4 @@ dependencies {
     implementation("com.valentinilk.shimmer:compose-shimmer:1.2.0")
     implementation("com.github.a914-gowtham:compose-ratingbar:1.3.8")
 
-
-
 }

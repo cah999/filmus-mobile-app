@@ -70,7 +70,7 @@ data class Author(
     val userId: String, val nickname: String, val avatar: String
 )
 
-data class Review(
+data class FullReview(
     val id: String,
     val rating: Int,
     val reviewText: String,
@@ -85,7 +85,7 @@ data class DetailedMovie(
     val year: Int,
     val country: String,
     val genres: List<String>,
-    val reviews: List<Review>,
+    val reviews: List<FullReview>,
     val time: Int,
     val tagLine: String,
     val description: String,
@@ -444,7 +444,7 @@ fun InfoRow(title: String, value: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ReviewCard(review: Review) {
+fun ReviewCard(review: FullReview) {
     val isUser = true
     Column {
         Row(
