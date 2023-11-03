@@ -38,7 +38,8 @@ import kotlin.math.min
 fun MainScreen(navController: NavHostController, viewModel: MainViewModel, movies: List<Movie>) {
     val pagerState = rememberPagerState { min(4, movies.size) }
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
     ) {
         item {
             LaunchedEffect(pagerState) {
@@ -112,5 +113,3 @@ fun MainScreen(navController: NavHostController, viewModel: MainViewModel, movie
         }
     }
 }
-
-

@@ -62,6 +62,7 @@ import com.example.filmus.ui.marks.FilmMark
 import com.example.filmus.viewmodel.movie.MovieViewModel
 
 
+// todo blur view
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MovieDetailsScreen(
@@ -72,6 +73,9 @@ fun MovieDetailsScreen(
     viewModel: MovieViewModel
 ) {
     val scrollState = rememberScrollState()
+    val fadingEdgeModifier = Modifier.fadingEdges(
+        scrollState = scrollState
+    )
     val maxScrollDistance = with(LocalDensity.current) { (569.5).dp.toPx() }.toInt()
     var showDialog by remember { mutableStateOf(false) }
 
@@ -101,6 +105,7 @@ fun MovieDetailsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
+                .then(fadingEdgeModifier)
                 .padding(it)
         ) {
             Image(

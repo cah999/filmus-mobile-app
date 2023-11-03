@@ -34,7 +34,7 @@ fun Carousel(
             itemCount = movies.size,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 10.dp)
+                .padding(bottom = 10.dp),
         )
     }
 }

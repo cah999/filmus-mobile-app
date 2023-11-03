@@ -54,7 +54,8 @@ class MainActivity : ComponentActivity() {
                 }
                 isLoading = false
             }
-
+            // не создавать view models в main activity
+            // чтобы view model создавал сам экран
             val loginViewModel: LoginViewModel by viewModels {
                 LoginViewModelFactory(tokenManager)
             }
