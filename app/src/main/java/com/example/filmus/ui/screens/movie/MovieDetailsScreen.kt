@@ -93,7 +93,7 @@ fun MovieDetailsScreen(
         CenterAlignedTopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = Color(0xFF1D1D1D)
         ), title = {}, navigationIcon = {
-            IconButton(onClick = { /* Handle back navigation */ }) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     painter = painterResource(id = R.drawable.back),
                     contentDescription = null,
@@ -351,7 +351,7 @@ fun MovieDetailsScreen(
                     textAlign = TextAlign.Center,
                 )
             }, navigationIcon = {
-                IconButton(onClick = { /* Handle back navigation */ }) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         painterResource(id = R.drawable.back), contentDescription = null
                     )

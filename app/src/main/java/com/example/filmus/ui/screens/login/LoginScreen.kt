@@ -46,6 +46,7 @@ import com.example.filmus.viewmodel.login.LoginViewModel
 fun LoginScreen(
     navController: NavHostController, viewModel: LoginViewModel
 ) {
+    // todo вынести во viewModel
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var state by remember { mutableStateOf(UIState.DEFAULT) }

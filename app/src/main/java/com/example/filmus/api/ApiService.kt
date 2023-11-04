@@ -35,11 +35,6 @@ data class RegistrationResponse(
     @Json(name = "token") val token: String
 )
 
-//data class RegistrationResponse(
-//    @Json(name = "message") val message: String,
-//    @Json(name = "errors") val errors: String,
-//    @Json(name = "token") val token: String
-//)
 class AuthInterceptor(private val token: String) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): AuthResponse {
         val originalRequest = chain.request()

@@ -15,8 +15,6 @@ fun FavoritesScreen(
     } else {
         FavoritesList(posters = posters)
     }
-
-
 }
 
 
