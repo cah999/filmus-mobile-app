@@ -226,6 +226,7 @@ fun AppNavigation(
                 navController = navController,
                 viewModel = movieViewModel
             )
+
         }
     }
 }
