@@ -23,8 +23,16 @@ import com.example.filmus.navigation.BottomBar
 import com.example.filmus.navigation.Screen
 import com.example.filmus.navigation.TopBar
 import com.example.filmus.ui.theme.FilmusTheme
+import com.example.filmus.viewmodel.favorites.FavoritesViewModel
+import com.example.filmus.viewmodel.favorites.FavoritesViewModelFactory
 import com.example.filmus.viewmodel.login.LoginViewModel
-import com.example.filmus.viewmodel.mainscreen.MovieViewModel
+import com.example.filmus.viewmodel.login.LoginViewModelFactory
+import com.example.filmus.viewmodel.mainscreen.MainViewModel
+import com.example.filmus.viewmodel.mainscreen.MainViewModelFactory
+import com.example.filmus.viewmodel.movie.MovieViewModel
+import com.example.filmus.viewmodel.movie.MovieViewModelFactory
+import com.example.filmus.viewmodel.profile.ProfileViewModel
+import com.example.filmus.viewmodel.profile.ProfileViewModelFactory
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
 import com.example.filmus.viewmodel.registration.RegistrationViewModelFactory
 
@@ -46,11 +54,25 @@ class MainActivity : ComponentActivity() {
                 }
                 isLoading = false
             }
-
-            val loginViewModel = LoginViewModel(tokenManager)
-            val movieViewModel = MovieViewModel()
+            // не создавать view models в main activity
+            // чтобы view model создавал сам экран
+            val loginViewModel: LoginViewModel by viewModels {
+                LoginViewModelFactory(tokenManager)
+            }
             val registrationViewModel: RegistrationViewModel by viewModels {
                 RegistrationViewModelFactory(tokenManager)
+            }
+            val mainViewModel: MainViewModel by viewModels {
+                MainViewModelFactory()
+            }
+            val favoritesViewModel: FavoritesViewModel by viewModels {
+                FavoritesViewModelFactory()
+            }
+            val profileViewModel: ProfileViewModel by viewModels {
+                ProfileViewModelFactory(tokenManager)
+            }
+            val movieViewModel: MovieViewModel by viewModels {
+                MovieViewModelFactory()
             }
 
             FilmusTheme {
@@ -77,11 +99,14 @@ class MainActivity : ComponentActivity() {
                     ) {
                         Log.d("MainActivity", "startScreen: $startScreen")
                         AppNavigation(
-                            navController,
-                            loginViewModel,
-                            registrationViewModel,
-                            movieViewModel,
-                            startScreen
+                            navController = navController,
+                            startScreen = startScreen,
+                            loginViewModel = loginViewModel,
+                            registrationViewModel = registrationViewModel,
+                            mainViewModel = mainViewModel,
+                            favoritesViewModel = favoritesViewModel,
+                            profileViewModel = profileViewModel,
+                            movieViewModel = movieViewModel
                         )
                     }
                 }

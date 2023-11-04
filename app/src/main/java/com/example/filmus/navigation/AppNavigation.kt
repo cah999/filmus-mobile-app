@@ -1,29 +1,36 @@
 package com.example.filmus.navigation
 
+import android.util.Log
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.filmus.R
+import com.example.filmus.domain.favorite.Poster
+import com.example.filmus.domain.main.Movie
+import com.example.filmus.domain.main.Review
+import com.example.filmus.domain.movie.Author
+import com.example.filmus.domain.movie.DetailedMovie
+import com.example.filmus.domain.movie.FullReview
 import com.example.filmus.ui.screens.favorites.FavoritesScreen
-import com.example.filmus.ui.screens.favorites.Poster
 import com.example.filmus.ui.screens.login.LoginScreen
-import com.example.filmus.ui.screens.main.Author
-import com.example.filmus.ui.screens.main.DetailedMovie
-import com.example.filmus.ui.screens.main.FullReview
 import com.example.filmus.ui.screens.main.MainScreen
-import com.example.filmus.ui.screens.main.Movie
-import com.example.filmus.ui.screens.main.MovieDetailsScreen
-import com.example.filmus.ui.screens.main.Review
+import com.example.filmus.ui.screens.movie.MovieDetailsScreen
+
 import com.example.filmus.ui.screens.profile.ProfileScreen
 import com.example.filmus.ui.screens.registration.RegistrationPwdScreen
 import com.example.filmus.ui.screens.registration.RegistrationScreen
 import com.example.filmus.ui.screens.splash.LoadingScreen
 import com.example.filmus.ui.screens.welcome.WelcomeScreen
+import com.example.filmus.viewmodel.favorites.FavoritesViewModel
 import com.example.filmus.viewmodel.login.LoginViewModel
-import com.example.filmus.viewmodel.mainscreen.MovieViewModel
+import com.example.filmus.viewmodel.mainscreen.MainViewModel
+import com.example.filmus.viewmodel.movie.MovieViewModel
+import com.example.filmus.viewmodel.profile.ProfileViewModel
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
 import java.util.Date
 
@@ -32,11 +39,14 @@ fun AppNavigation(
     navController: NavHostController,
     loginViewModel: LoginViewModel,
     registrationViewModel: RegistrationViewModel,
+    mainViewModel: MainViewModel,
     movieViewModel: MovieViewModel,
+    favoritesViewModel: FavoritesViewModel,
+    profileViewModel: ProfileViewModel,
+
     startScreen: Screen
 ) {
-    NavHost(
-        navController,
+    NavHost(navController,
         startDestination = startScreen.route,
         popEnterTransition = { fadeIn() },
         popExitTransition = { fadeOut() }
@@ -64,11 +74,14 @@ fun AppNavigation(
                 Poster(R.drawable.splash_background, "Постер 3"),
                 Poster(R.drawable.ic_launcher_background, "Постер 4", 4),
             )
-            FavoritesScreen(posters = posters, navController = navController)
+            FavoritesScreen(
+                posters = posters, navController = navController, viewModel = favoritesViewModel
+            )
         }
         composable(Screen.Main.route) {
             val movies = listOf(
                 Movie(
+                    "1",
                     "Название фильма 1",
                     R.drawable.splash_background,
                     2021,
@@ -83,45 +96,7 @@ fun AppNavigation(
                     )
                 ),
                 Movie(
-                    "Какое то очень большое Название фильма 2",
-                    R.drawable.ic_launcher_background,
-                    2023,
-                    "США",
-                    listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
-                    listOf(
-                        Review("1", 5),
-                        Review("2", 4),
-                        Review("3", 3),
-                        Review("4", 2),
-                        Review("5", 1),
-                    )
-                ),                Movie(
-                    "Какое то очень большое Название фильма 2",
-                    R.drawable.ic_launcher_background,
-                    2023,
-                    "США",
-                    listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
-                    listOf(
-                        Review("1", 5),
-                        Review("2", 4),
-                        Review("3", 3),
-                        Review("4", 2),
-                        Review("5", 1),
-                    )
-                ),                Movie(
-                    "Какое то очень большое Название фильма 2",
-                    R.drawable.ic_launcher_background,
-                    2023,
-                    "США",
-                    listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
-                    listOf(
-                        Review("1", 5),
-                        Review("2", 4),
-                        Review("3", 3),
-                        Review("4", 2),
-                        Review("5", 1),
-                    )
-                ),                Movie(
+                    "2",
                     "Какое то очень большое Название фильма 2",
                     R.drawable.ic_launcher_background,
                     2023,
@@ -136,6 +111,7 @@ fun AppNavigation(
                     )
                 ),
                 Movie(
+                    "3",
                     "Какое то очень большое Название фильма 2",
                     R.drawable.ic_launcher_background,
                     2023,
@@ -150,6 +126,7 @@ fun AppNavigation(
                     )
                 ),
                 Movie(
+                    "4",
                     "Какое то очень большое Название фильма 2",
                     R.drawable.ic_launcher_background,
                     2023,
@@ -164,6 +141,7 @@ fun AppNavigation(
                     )
                 ),
                 Movie(
+                    "5",
                     "Какое то очень большое Название фильма 2",
                     R.drawable.ic_launcher_background,
                     2023,
@@ -178,46 +156,37 @@ fun AppNavigation(
                     )
                 ),
                 Movie(
-                    "Какое то очень большое Название фильма 2",
+                    "6",
+                    "Название",
                     R.drawable.ic_launcher_background,
                     2023,
                     "США",
                     listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
                     listOf(
-                        Review("1", 5),
-                        Review("2", 4),
-                        Review("3", 3),
-                        Review("4", 2),
-                        Review("5", 1),
-                    )
-                ),
-                Movie(
-                    "Какое то очень большое Название фильма 2",
-                    R.drawable.ic_launcher_background,
-                    2023,
-                    "США",
-                    listOf("Жанр 1", "Жанр 2", "Жанр 3", "Жанр 4", "Жанр 5", "Жанр 6"),
-                    listOf(
-                        Review("1", 5),
-                        Review("2", 4),
-                        Review("3", 3),
-                        Review("4", 2),
+                        Review("1", 1),
+                        Review("2", 1),
+                        Review("3", 1),
+                        Review("4", 1),
                         Review("5", 1),
                     )
                 ),
             )
-            MainScreen(navController = navController, viewModel = movieViewModel, movies = movies)
+            MainScreen(navController = navController, viewModel = mainViewModel, movies = movies)
         }
         composable(Screen.Profile.route) {
-            ProfileScreen(navController = navController)
+            ProfileScreen(navController = navController, viewModel = profileViewModel)
         }
-        composable(Screen.Movie.route) {
+        composable(
+            "${Screen.Movie.route}/{movieId}",
+            arguments = listOf(navArgument("movieId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val movieId = backStackEntry.arguments?.getString("movieId") ?: ""
+            Log.d("TAG", "AppNavigation: $movieId")
             val author = Author(
                 userId = "user123",
                 nickname = "MovieBuff",
                 avatar = "https://avatar-url.com/avatar.png"
             )
-            // todo почему оценки не все? Что делать если средняя та, которой нет?
             val review = FullReview(
                 id = "review456",
                 rating = 6,
@@ -235,6 +204,7 @@ fun AppNavigation(
                 author = author
             )
             val movie = DetailedMovie(
+                id = "1",
                 name = "Inception",
                 poster = "https://poster-url.com/inception.png",
                 year = 2010,
@@ -249,7 +219,13 @@ fun AppNavigation(
                 fees = 828_322_032,
                 ageLimit = 13
             )
-            MovieDetailsScreen(movie = movie, isFavorite = false, onFavoriteToggle = { })
+            MovieDetailsScreen(
+                movie = movie,
+                isFavorite = false,
+                onFavoriteToggle = { },
+                navController = navController,
+                viewModel = movieViewModel
+            )
         }
     }
 }

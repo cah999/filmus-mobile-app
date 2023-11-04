@@ -50,7 +50,6 @@ android {
 }
 
 dependencies {
-
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.0")
@@ -72,7 +71,6 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
-    implementation("com.squareup.okhttp3:okhttp:4.9.1")
     implementation("androidx.navigation:navigation-compose:2.7.4")
     implementation("com.squareup.moshi:moshi:1.12.0")
     implementation("com.squareup.moshi:moshi-kotlin:1.12.0")
@@ -83,9 +81,7 @@ dependencies {
     implementation("com.maxkeppeler.sheets-compose-dialogs:calendar:1.2.0")
     implementation("androidx.compose.material:material:1.5.4")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
-    implementation("androidx.navigation:navigation-compose:2.7.4")
     implementation("androidx.compose.material:material:1.5.4")
     implementation("com.valentinilk.shimmer:compose-shimmer:1.2.0")
     implementation("com.github.a914-gowtham:compose-ratingbar:1.3.8")
-
 }

@@ -46,4 +46,21 @@ class TokenManager(private val context: Context) {
             null
         }
     }
+
+    suspend fun clearToken() {
+        try {
+            withContext(Dispatchers.IO) {
+                val sharedPreferences = EncryptedSharedPreferences.create(
+                    context,
+                    "token_prefs",
+                    masterKeyAlias,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                )
+                sharedPreferences.edit().clear().apply()
+            }
+        } catch (e: Exception) {
+            Log.e("TokenManager", "Error clearing token", e)
+        }
+    }
 }
