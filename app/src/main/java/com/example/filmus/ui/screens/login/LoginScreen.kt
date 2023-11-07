@@ -1,5 +1,6 @@
 package com.example.filmus.ui.screens.login
 
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,8 +20,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,23 +33,30 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.filmus.R
 import com.example.filmus.domain.UIState
+import com.example.filmus.domain.UserManager
 import com.example.filmus.domain.login.LoginResult
 import com.example.filmus.navigation.Screen
 import com.example.filmus.ui.fields.CustomTextField
 import com.example.filmus.viewmodel.login.LoginViewModel
+import com.example.filmus.viewmodel.login.LoginViewModelFactory
 
 @Composable
 fun LoginScreen(
-    navController: NavHostController, viewModel: LoginViewModel
+    navController: NavHostController,
+    userManager: UserManager
 ) {
-    // todo вынести во viewModel
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var state by remember { mutableStateOf(UIState.DEFAULT) }
-    var errorMessage by remember { mutableStateOf("") }
+    val viewModel: LoginViewModel = viewModel(
+        factory = LoginViewModelFactory(userManager)
+    )
+    var username by viewModel.username
+    var password by viewModel.password
+    var state by viewModel.state
+    var errorMessage by viewModel.errorMessage
+    Log.d("LoginScreen", "username: $username")
     val containerColor by animateColorAsState(
         targetValue = if (state == UIState.ERROR) Color(0x1AE64646) else Color.Transparent,
         label = ""

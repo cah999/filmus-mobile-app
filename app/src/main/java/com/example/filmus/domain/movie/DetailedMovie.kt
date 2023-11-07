@@ -1,5 +1,8 @@
 package com.example.filmus.domain.movie
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class DetailedMovie(
     val id: String,
     val name: String,

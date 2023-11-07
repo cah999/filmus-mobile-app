@@ -1,12 +1,13 @@
 package com.example.filmus.viewmodel.registration
 
 import android.util.Log
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.filmus.api.RegistrationRequest
 import com.example.filmus.api.createApiService
-import com.example.filmus.domain.TokenManager
+import com.example.filmus.domain.UserManager
 import com.example.filmus.domain.registration.register.RegistrationData
 import com.example.filmus.domain.registration.register.RegistrationResult
 import com.example.filmus.domain.registration.register.RegistrationUseCase
@@ -22,13 +23,13 @@ import java.util.Locale
 
 
 class RegistrationViewModel(
-    private val tokenManager: TokenManager
+    private val userManager: UserManager
 ) :
     ViewModel() {
 
 
     var name = mutableStateOf("")
-    var gender = mutableStateOf(true)
+    var gender = mutableIntStateOf(1)
     var login = mutableStateOf("")
     var email = mutableStateOf("")
     var birthDate = mutableStateOf("")
@@ -68,7 +69,6 @@ class RegistrationViewModel(
     }
 
     private fun formatDateToISO8601(birthDate: String): String {
-        Log.d("RegistrationViewModel", "formatDateToISO8601: $birthDate")
         val inputFormat = SimpleDateFormat("ddMMyyyy", Locale.getDefault())
         val outputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
 
@@ -82,7 +82,7 @@ class RegistrationViewModel(
             Log.d("RegistrationViewModel", "register: birthDate: ${birthDate}")
             Log.d("RegistrationViewModel", "register: email: ${email}")
             val apiService = createApiService()
-            val registrationRepository = RegistrationRepository(apiService, tokenManager)
+            val registrationRepository = RegistrationRepository(apiService, userManager)
             val registrationUseCase = RegistrationUseCase(registrationRepository)
             val result = registrationUseCase.register(
                 RegistrationRequest(
@@ -91,9 +91,12 @@ class RegistrationViewModel(
                     password = password.value,
                     email = email.value,
                     birthDate = formatDateToISO8601(birthDate.value),
-                    gender = if (gender.value) 1 else 0
+                    gender = gender.value
                 )
             )
+            if (result is RegistrationResult.Success) {
+                userManager.checkToken()
+            }
             withContext(Dispatchers.Main) {
                 onResult(result)
             }

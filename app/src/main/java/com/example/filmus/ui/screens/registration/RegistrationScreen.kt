@@ -46,7 +46,7 @@ import com.example.filmus.viewmodel.registration.RegistrationViewModel
 fun RegistrationScreen(
     navController: NavHostController, viewModel: RegistrationViewModel
 ) {
-
+    // todo FIX REGISTRATION \2023-11-06 02:10:13.486 28734-28734 RegistrationPwdScreen   com.example.filmus                   D  Error(message=Registration failed, errors={"message":"User Registration Failed","errors":{"DuplicateUserName":{"rawValue":null,"attemptedValue":null,"errors":[{"exception":null,"errorMessage":"Username 'qwerty' is already taken."}],"validationState":1,"isContainerNode":false,"children":null}}})
     var name by viewModel.name
     var login by viewModel.login
     var email by viewModel.email
@@ -134,7 +134,7 @@ fun RegistrationScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         GenderSelection(
-            defaultIsMale = gender,
+            defaultIsMale = viewModel.gender,
             onGenderSelected = { gender = it })
         Spacer(modifier = Modifier.height(15.dp))
         Text(

@@ -2,14 +2,14 @@ package com.example.filmus.viewmodel.registration
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.filmus.domain.TokenManager
+import com.example.filmus.domain.UserManager
 
 class RegistrationViewModelFactory(
-    private val tokenManager: TokenManager
+    private val userManager: UserManager
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(RegistrationViewModel::class.java)) {
-            return RegistrationViewModel(tokenManager) as T
+            return RegistrationViewModel(userManager) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

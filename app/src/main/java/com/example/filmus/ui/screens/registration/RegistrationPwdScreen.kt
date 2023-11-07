@@ -172,6 +172,7 @@ fun RegistrationPwdScreen(
                             is RegistrationResult.Error -> {
                                 Log.d("RegistrationPwdScreen", "Registration error")
                                 Log.d("RegistrationPwdScreen", "$result")
+                                errorMessage = result.message
                             }
                         }
                     }

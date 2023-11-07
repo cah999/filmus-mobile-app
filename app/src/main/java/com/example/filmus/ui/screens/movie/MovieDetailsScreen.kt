@@ -55,23 +55,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.filmus.R
-import com.example.filmus.domain.movie.DetailedMovie
 import com.example.filmus.ui.marks.FilmMark
+import com.example.filmus.ui.screens.main.customShimmer
 import com.example.filmus.viewmodel.movie.MovieViewModel
+import com.example.filmus.viewmodel.movie.MovieViewModelFactory
 
 
-// todo blur view
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MovieDetailsScreen(
-    movie: DetailedMovie,
+    movieId: String,
     isFavorite: Boolean,
     onFavoriteToggle: (Boolean) -> Unit,
-    navController: NavHostController,
-    viewModel: MovieViewModel
+    navController: NavHostController
 ) {
+    val viewModel: MovieViewModel = viewModel(factory = MovieViewModelFactory(movieId))
+    val movie by viewModel.movieDetails
+    LaunchedEffect(Unit) {
+        viewModel.getMovieDetails()
+    }
+
     val scrollState = rememberScrollState()
     val fadingEdgeModifier = Modifier.fadingEdges(
         scrollState = scrollState
@@ -80,9 +86,9 @@ fun MovieDetailsScreen(
     var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(scrollState.value) {
-        if (scrollState.value <= maxScrollDistance / 2) {
+        if (scrollState.value <= maxScrollDistance / 3) {
             scrollState.animateScrollTo(0)
-        } else if (scrollState.value <= maxScrollDistance / 2) {
+        } else if (scrollState.value > maxScrollDistance / 3 && scrollState.value < maxScrollDistance) {
             scrollState.animateScrollTo(maxScrollDistance)
         }
     }
@@ -108,182 +114,174 @@ fun MovieDetailsScreen(
                 .then(fadingEdgeModifier)
                 .padding(it)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background), // Замените на ресурс вашего постера
-                contentDescription = null,
-                modifier = Modifier
-                    .width(360.dp)
-                    .height(497.dp)
-                    .drawWithCache {
-                        val gradient = Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color(0xFF1D1D1D)),
-                            startY = size.height / 3,
-                            endY = size.height
-                        )
-                        onDrawWithContent {
-                            drawContent()
-                            drawRect(gradient, blendMode = BlendMode.Darken)
-                        }
-                    },
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Column(Modifier.padding(16.dp)) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    FilmMark(movie.reviews.map { it.rating }.average().toFloat())
-                    Text(
-                        text = movie.name, style = TextStyle(
-                            fontSize = 24.sp,
-                            fontFamily = FontFamily(Font(R.font.inter)),
-                            fontWeight = FontWeight(700),
-                            color = Color(0xFFFFFFFF),
-                            textAlign = TextAlign.Center,
-                        ), modifier = Modifier.width(212.dp)
-                    )
-                    IconButton(
-                        onClick = { onFavoriteToggle(!isFavorite) },
-                        modifier = Modifier
-                            .background(Color(0xFF404040), shape = CircleShape)
-                            .width(40.dp)
-                            .height(40.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = null,
-                            tint = if (isFavorite) Color(0xFFFC315E) else Color(0xFFFFFFFF),
-                            modifier = Modifier
-                                .width(24.dp)
-                                .height(24.dp)
-                        )
-                    }
-
-                }
-                Spacer(modifier = Modifier.height(20.dp))
-
-                var isExpanded by remember { mutableStateOf(false) }
-                val maxLines = if (isExpanded) Int.MAX_VALUE else 4
-
-                AnimatedVisibility(visible = !isExpanded) {
-                    Spacer(modifier = Modifier.height(5.dp))
-                }
-                Text(
-                    text = movie.description,
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(400),
-                        color = Color(0xFFCCCCCC),
-                    ),
-                    maxLines = maxLines,
+            if (movie == null) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .width(360.dp)
+                        .height(497.dp)
+                        .customShimmer(1000)
+                        .background(Color.Gray),
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Column(Modifier.padding(16.dp)) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(51.dp)
+                                .height(26.dp)
+                                .customShimmer(1000)
+                                .background(Color.Gray),
+                        )
+                        Box(
+                            modifier = Modifier
+                                .width(212.dp)
+                                .customShimmer(1000)
+                                .background(Color.Gray),
+                        )
+                        Box(
+                            modifier = Modifier
+                                .background(Color(0xFF404040), shape = CircleShape)
+                                .width(40.dp)
+                                .height(40.dp)
+                                .customShimmer(1000)
+                                .background(Color.Gray),
+                        )
+
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .customShimmer(1000)
+                            .background(Color.Gray),
+                    )
+                }
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_launcher_background),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(360.dp)
+                        .height(497.dp)
                         .drawWithCache {
                             val gradient = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    if (isExpanded) Color.Transparent else Color(0xFF1D1D1D)
-                                ), startY = size.height / 2, endY = size.height
+                                colors = listOf(Color.Transparent, Color(0xFF1D1D1D)),
+                                startY = size.height / 3,
+                                endY = size.height
                             )
                             onDrawWithContent {
                                 drawContent()
                                 drawRect(gradient, blendMode = BlendMode.Darken)
                             }
                         },
+                    contentScale = ContentScale.Crop
                 )
 
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { isExpanded = !isExpanded }) {
-                    Text(
-                        text = "Подробнее", style = TextStyle(
-                            fontSize = 14.sp,
-                            fontFamily = FontFamily(Font(R.font.inter)),
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFFFC315E),
+                Spacer(modifier = Modifier.height(16.dp))
+                Column(Modifier.padding(16.dp)) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        FilmMark(
+                            movie!!.reviews.map { it?.rating ?: 0 }.average().toFloat(),
+                            modifier = Modifier
+                                .width(51.dp)
+                                .height(26.dp),
                         )
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = Color(0xFFFC315E)
-                    )
-                }
+                        (if (movie!!.name == null) "Фильм" else movie!!.name)?.let { title ->
+                            Text(
+                                text = title,
+                                style = TextStyle(
+                                    fontSize = 24.sp,
+                                    fontFamily = FontFamily(Font(R.font.inter)),
+                                    fontWeight = FontWeight(700),
+                                    color = Color(0xFFFFFFFF),
+                                    textAlign = TextAlign.Center,
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        IconButton(
+                            onClick = { onFavoriteToggle(!isFavorite) },
+                            modifier = Modifier
+                                .background(Color(0xFF404040), shape = CircleShape)
+                                .width(40.dp)
+                                .height(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = null,
+                                tint = if (isFavorite) Color(0xFFFC315E) else Color(0xFFFFFFFF),
+                                modifier = Modifier
+                                    .width(24.dp)
+                                    .height(24.dp)
+                            )
+                        }
 
-                Spacer(modifier = Modifier.height(20.dp))
-                Text(
-                    text = "Жанры", style = TextStyle(
-                        fontSize = 16.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(700),
-                        color = Color(0xFFFFFFFF),
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
 
-                        )
-                )
-                Spacer(modifier = Modifier.height(10.dp))
+                    var isExpanded by remember { mutableStateOf(false) }
+                    val maxLines = if (isExpanded) Int.MAX_VALUE else 4
 
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    for (genre in movie.genres) {
+                    AnimatedVisibility(visible = !isExpanded) {
+                        Spacer(modifier = Modifier.height(5.dp))
+                    }
+                    (if (movie!!.description == null) "Описание" else movie!!.description)?.let { title ->
                         Text(
-                            text = genre, style = TextStyle(
-                                fontSize = 15.sp,
+                            text = title,
+                            style = TextStyle(
+                                fontSize = 14.sp,
                                 fontFamily = FontFamily(Font(R.font.inter)),
-                                fontWeight = FontWeight(500),
-                                color = Color(0xFFFFFFFF),
-
-                                textAlign = TextAlign.Center,
-                            ), modifier = Modifier
-                                .background(
-                                    color = Color(0xFFFC315E),
-                                    shape = RoundedCornerShape(size = 5.dp)
-                                )
-                                .padding(start = 10.dp, top = 5.dp, end = 10.dp, bottom = 5.dp)
+                                fontWeight = FontWeight(400),
+                                color = Color(0xFFCCCCCC),
+                            ),
+                            maxLines = maxLines,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .drawWithCache {
+                                    val gradient = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            if (isExpanded) Color.Transparent else Color(0xFF1D1D1D)
+                                        ), startY = size.height / 2, endY = size.height
+                                    )
+                                    onDrawWithContent {
+                                        drawContent()
+                                        drawRect(gradient, blendMode = BlendMode.Darken)
+                                    }
+                                },
                         )
                     }
-                }
 
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Text(
-                    text = "О фильме", style = TextStyle(
-                        fontSize = 16.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(700),
-                        color = Color(0xFFFFFFFF),
-
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { isExpanded = !isExpanded }) {
+                        Text(
+                            text = "Подробнее", style = TextStyle(
+                                fontSize = 14.sp,
+                                fontFamily = FontFamily(Font(R.font.inter)),
+                                fontWeight = FontWeight(500),
+                                color = Color(0xFFFC315E),
+                            )
                         )
-                )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = Color(0xFFFC315E)
+                        )
+                    }
 
-                val infoModifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp)
-
-
-                InfoRow("Год", movie.year.toString(), infoModifier)
-                InfoRow("Страна", movie.country, infoModifier)
-                InfoRow("Слоган", movie.tagLine, infoModifier)
-                InfoRow("Режиссёр", movie.director, infoModifier)
-                InfoRow("Бюджет", "\$${movie.budget}", infoModifier)
-                InfoRow("Сборы в мире", "\$${movie.fees} ", infoModifier)
-                InfoRow("Возраст", "${movie.ageLimit}+", infoModifier)
-                InfoRow("Время", "${movie.time} мин.", infoModifier)
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                    Spacer(modifier = Modifier.height(20.dp))
                     Text(
-                        text = "Отзывы", style = TextStyle(
+                        text = "Жанры", style = TextStyle(
                             fontSize = 16.sp,
                             fontFamily = FontFamily(Font(R.font.inter)),
                             fontWeight = FontWeight(700),
@@ -291,65 +289,175 @@ fun MovieDetailsScreen(
 
                             )
                     )
-                    Spacer(modifier = Modifier.weight(1f))
-                    IconButton(
-                        onClick = { showDialog = true },
-                        modifier = Modifier
-                            .background(Color(0xFFFC315E), shape = CircleShape)
-                            .width(32.dp)
-                            .height(32.dp)
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(
-                            painterResource(id = R.drawable.plus),
-                            contentDescription = null,
-                            tint = Color(0xFFFFFFFF),
-                            modifier = Modifier
-                                .width(24.dp)
-                                .height(24.dp)
-                        )
-                    }
-                }
+                        for (genre in movie!!.genres) {
+                            Text(
+                                text = genre?.name ?: "Жанр", style = TextStyle(
+                                    fontSize = 15.sp,
+                                    fontFamily = FontFamily(Font(R.font.inter)),
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFFFFFFFF),
 
-                Spacer(modifier = Modifier.height(15.dp))
-
-                if (movie.reviews.isNotEmpty()) {
-                    movie.reviews.forEach { review ->
-                        ReviewCard(review)
-                        if (review != movie.reviews.last()) {
-                            Spacer(modifier = Modifier.height(20.dp))
+                                    textAlign = TextAlign.Center,
+                                ), modifier = Modifier
+                                    .background(
+                                        color = Color(0xFFFC315E),
+                                        shape = RoundedCornerShape(size = 5.dp)
+                                    )
+                                    .padding(
+                                        start = 10.dp,
+                                        top = 5.dp,
+                                        end = 10.dp,
+                                        bottom = 5.dp
+                                    )
+                            )
                         }
                     }
-                } else {
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
                     Text(
-                        text = "Нет отзывов", style = TextStyle(
+                        text = "О фильме", style = TextStyle(
                             fontSize = 16.sp,
                             fontFamily = FontFamily(Font(R.font.inter)),
-                            fontWeight = FontWeight(50),
+                            fontWeight = FontWeight(700),
                             color = Color(0xFFFFFFFF),
 
-                            ), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
+                            )
                     )
+
+                    val infoModifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp)
+
+
+                    InfoRow("Год", movie!!.year.toString(), infoModifier)
+                    if (movie!!.country != null) {
+                        movie!!.country?.let { title -> InfoRow("Страна", title, infoModifier) }
+                    }
+                    if (movie!!.tagline != null) {
+                        movie!!.tagline?.let { title -> InfoRow("Слоган", title, infoModifier) }
+                    }
+                    if (movie!!.director != null) {
+                        movie!!.director?.let { title -> InfoRow("Режиссёр", title, infoModifier) }
+                    }
+                    if (movie!!.budget != null) {
+                        movie!!.budget?.let { title ->
+                            InfoRow(
+                                "Бюджет",
+                                "\$${title}",
+                                infoModifier
+                            )
+                        }
+                    }
+                    if (movie!!.fees != null) {
+                        movie!!.fees?.let { title ->
+                            InfoRow(
+                                "Сборы в мире",
+                                "\$${title}",
+                                infoModifier
+                            )
+                        }
+                    }
+                    InfoRow(
+                        "Возраст",
+                        "${movie!!.ageLimit}+",
+                        infoModifier
+                    )
+                    InfoRow(
+                        "Время",
+                        "${movie!!.time} мин.",
+                        infoModifier
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Отзывы", style = TextStyle(
+                                fontSize = 16.sp,
+                                fontFamily = FontFamily(Font(R.font.inter)),
+                                fontWeight = FontWeight(700),
+                                color = Color(0xFFFFFFFF),
+
+                                )
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        IconButton(
+                            onClick = { showDialog = true },
+                            modifier = Modifier
+                                .background(Color(0xFFFC315E), shape = CircleShape)
+                                .width(32.dp)
+                                .height(32.dp)
+                        ) {
+                            Icon(
+                                painterResource(id = R.drawable.plus),
+                                contentDescription = null,
+                                tint = Color(0xFFFFFFFF),
+                                modifier = Modifier
+                                    .width(24.dp)
+                                    .height(24.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(15.dp))
+
+                    if (movie!!.reviews.isNotEmpty()) {
+                        movie!!.reviews.forEach { review ->
+                            if (review != null) {
+                                ReviewCard(review)
+                            }
+                            if (review != movie!!.reviews.last()) {
+                                Spacer(modifier = Modifier.height(20.dp))
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = "Нет отзывов",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontFamily = FontFamily(Font(R.font.inter)),
+                                fontWeight = FontWeight(50),
+                                color = Color(0xFFFFFFFF),
+
+                                ),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
         }
     })
 
-    if (hasScrolledToTitle) {
+    if (movie != null && hasScrolledToTitle) {
         Column {
             CenterAlignedTopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
                 containerColor = Color(0xFF1D1D1D)
             ), title = {
-                Text(
-                    text = movie.name,
-                    style = TextStyle(
-                        fontSize = 24.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(700),
-                        color = Color(0xFFFFFFFF),
+                (if (movie!!.name == null) "Фильм" else movie!!.name)?.let {
+                    Text(
+                        text = it,
+                        style = TextStyle(
+                            fontSize = 24.sp,
+                            fontFamily = FontFamily(Font(R.font.inter)),
+                            fontWeight = FontWeight(700),
+                            color = Color(0xFFFFFFFF),
 
-                        ),
-                    textAlign = TextAlign.Center,
-                )
+                            ),
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }, navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
@@ -382,7 +490,9 @@ fun MovieDetailsScreen(
         }
     }
     if (showDialog) {
-        ReviewDialog(onDismissRequest = { showDialog = false }, onClick = { showDialog = false })
+        ReviewDialog(
+            onDismissRequest = { showDialog = false },
+            onClick = { showDialog = false })
     }
 }
 

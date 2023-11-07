@@ -4,14 +4,14 @@ import android.util.Log
 import com.example.filmus.api.ApiService
 import com.example.filmus.api.RegistrationRequest
 import com.example.filmus.domain.MoshiProvider
-import com.example.filmus.domain.TokenManager
+import com.example.filmus.domain.UserManager
 import com.example.filmus.domain.registration.register.RegistrationResult
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class RegistrationRepository(
     private val apiService: ApiService,
-    private val tokenManager: TokenManager
+    private val userManager: UserManager
 ) {
     suspend fun register(data: RegistrationRequest): RegistrationResult {
         try {
@@ -22,7 +22,8 @@ class RegistrationRepository(
             if (response.isSuccessful) {
                 val token = response.body()?.token
                 if (!token.isNullOrBlank()) {
-                    tokenManager.saveToken(token)
+                    userManager.saveToken(token)
+                    userManager.checkToken()
                     return RegistrationResult.Success(token)
 
                 }

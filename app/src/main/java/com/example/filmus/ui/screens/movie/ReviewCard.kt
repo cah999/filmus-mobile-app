@@ -44,12 +44,12 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.filmus.R
-import com.example.filmus.domain.movie.FullReview
+import com.example.filmus.api.ReviewResponse
 import com.example.filmus.ui.marks.ReviewMark
 import java.text.SimpleDateFormat
 
 @Composable
-fun ReviewCard(review: FullReview) {
+fun ReviewCard(review: ReviewResponse) {
     val isUser = true
     Column {
         Row(
@@ -67,17 +67,19 @@ fun ReviewCard(review: FullReview) {
             )
             Spacer(modifier = Modifier.width(10.dp))
             Column() {
-                Text(
-                    text = if (review.isAnonymous) "Анонимный пользователь" else review.author.nickname,
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(500),
-                        color = Color(0xFFFFFFFF),
+                (if (review.isAnonymous) "Анонимный пользователь" else review.author?.nickName)?.let {
+                    Text(
+                        text = it,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontFamily = FontFamily(Font(R.font.inter)),
+                            fontWeight = FontWeight(500),
+                            color = Color(0xFFFFFFFF),
 
-                        ),
-                    textAlign = TextAlign.Center
-                )
+                            ),
+                        textAlign = TextAlign.Center
+                    )
+                }
                 if (isUser) Text(
                     text = "мой отзыв", style = TextStyle(
                         fontSize = 13.sp,
@@ -181,19 +183,22 @@ fun ReviewCard(review: FullReview) {
             }
 
         }
-        Text(
-            text = review.reviewText, style = TextStyle(
-                fontSize = 14.sp,
-                fontFamily = FontFamily(Font(R.font.inter)),
-                fontWeight = FontWeight(400),
-                color = Color(0xFFFFFFFF),
+        review.reviewText?.let {
+            Text(
+                text = it, style = TextStyle(
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(400),
+                    color = Color(0xFFFFFFFF),
 
-                ), modifier = Modifier.padding(top = 10.dp)
-        )
+                    ), modifier = Modifier.padding(top = 10.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(5.dp))
-        val dateFormat = SimpleDateFormat("dd.MM.yyyy")
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        val outputFormat = SimpleDateFormat("dd.MM.yyyy")
         Text(
-            text = dateFormat.format(review.createDateTime),
+            text = outputFormat.format(inputFormat.parse(review.createDateTime)!!),
             style = TextStyle(fontSize = 12.sp, color = Color(0xFF8C8C8C))
         )
     }

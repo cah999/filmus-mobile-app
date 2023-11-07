@@ -1,7 +1,12 @@
 package com.example.filmus.ui.screens.profile
 
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,8 +23,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,8 +36,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -39,22 +53,66 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.ImageLoader
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.ImageDecoderDecoder
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
 import com.example.filmus.R
+import com.example.filmus.domain.UserManager
 import com.example.filmus.navigation.Screen
 import com.example.filmus.ui.fields.CustomDateField
 import com.example.filmus.ui.fields.CustomTextField
 import com.example.filmus.ui.fields.GenderSelection
 import com.example.filmus.viewmodel.profile.ProfileViewModel
+import com.example.filmus.viewmodel.profile.ProfileViewModelFactory
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel) {
-    var email by remember { mutableStateOf("") }
-    var link by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
-    var gender by remember { mutableStateOf(true) }
-    var birthDate by remember { mutableStateOf("") }
+fun ProfileScreen(
+    navController: NavController,
+    userManager: UserManager
+) {
+    val viewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(userManager))
+    val nickname by viewModel.nickname
+    var email by viewModel.email
+    var link by viewModel.avatarLink
+    var name by viewModel.name
+    var gender by viewModel.gender
+    var birthDate by viewModel.birthDate
     var buttonEnabled by remember { mutableStateOf(false) }
+    val mContext = LocalContext.current
+    val imageLoader = ImageLoader.Builder(mContext)
+        .components {
+            add(ImageDecoderDecoder.Factory())
+        }
+        .memoryCache {
+            MemoryCache.Builder(mContext)
+                .maxSizePercent(0.25)
+                .build()
+        }
+        .diskCache {
+            DiskCache.Builder()
+                .directory(mContext.cacheDir.resolve("image_cache"))
+                .maxSizePercent(0.02)
+                .build()
+        }
+        .build()
+    val image = rememberAsyncImagePainter(
+        model = if (link == "") R.drawable.anonymous else link, imageLoader = imageLoader
+    )
+    var enlargedImage by remember { mutableStateOf(false) }
+    if (viewModel.isLogout.value) {
+        navController.navigate(Screen.Welcome.route) {
+            popUpTo(0)
+        }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.getInfo()
+    }
 
     Column(
         modifier = Modifier
@@ -62,26 +120,47 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel) {
             .padding(top = 16.dp, start = 16.dp, end = 16.dp)
             .verticalScroll(rememberScrollState())
     ) {
+
         Box(
-            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+            modifier = Modifier
+                .fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.splash_background),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(88.dp)
-                    .clip(CircleShape)
-                    .background(Color.Black, shape = CircleShape),
-                contentScale = ContentScale.Crop,
-                alignment = Alignment.Center
-            )
+            val longPressDetector = Modifier
+                .combinedClickable(
+                    onLongClick = {
+                        enlargedImage = true
+                    },
+                    onClick = {
+                        enlargedImage = false
+                    }
+                )
+            if (image.state is AsyncImagePainter.State.Error) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(88.dp)
+                        .clip(CircleShape)
+                        .background(Color.Transparent, shape = CircleShape)
+                )
+            } else {
+                Image(
+                    painter = image,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(88.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black, shape = CircleShape)
+                        .then(longPressDetector),
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.Center
+                )
+            }
         }
 
 
 
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = "Ivan ivan ivan",
+            text = nickname,
 
             style = TextStyle(
                 fontSize = 24.sp,
@@ -94,9 +173,6 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel) {
         Button(
             onClick = {
                 viewModel.logout()
-                navController.navigate(Screen.Welcome.route) {
-                    popUpTo(0)
-                }
             },
             modifier = Modifier
                 .width(328.dp)
@@ -200,7 +276,8 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel) {
             )
         )
         Spacer(modifier = Modifier.height(8.dp))
-        GenderSelection(defaultIsMale = gender, onGenderSelected = { selectedGender ->
+        Log.d("ProfileScreen", "gender value is $gender")
+        GenderSelection(defaultIsMale = viewModel.gender, onGenderSelected = { selectedGender ->
             gender = selectedGender
             if (!buttonEnabled) buttonEnabled = true
         })
@@ -228,7 +305,13 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel) {
         Spacer(modifier = Modifier.height(15.dp))
         Button(
             onClick = {
-
+                Log.d("ProfileScreen", "ProfileScreen: clicked: $buttonEnabled")
+                viewModel.updateInfo()
+                Toast.makeText(
+                    mContext,
+                    "Данные успешно обновлены!",
+                    Toast.LENGTH_SHORT
+                ).show()
             },
             modifier = Modifier
                 .width(328.dp)
@@ -259,7 +342,7 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel) {
         Spacer(modifier = Modifier.height(15.dp))
         Button(
             onClick = {
-
+                viewModel.getInfo()
             },
             modifier = Modifier
                 .width(328.dp)
@@ -283,8 +366,54 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel) {
                 )
             )
         }
-        // spacer with alpha 1
+
         Spacer(modifier = Modifier.height(15.dp))
 
     }
+    if (enlargedImage) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.75f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Scrim({ enlargedImage = false }, Modifier.fillMaxSize())
+            Image(
+                painter = image,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(300.dp)
+                    .clip(CircleShape)
+                    .background(Color.Transparent, shape = CircleShape),
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.Center
+            )
+        }
+    }
+}
+
+
+// https://developer.android.com/jetpack/compose/touch-input/pointer-input/tap-and-press#dismiss-composable
+@Composable
+private fun Scrim(onClose: () -> Unit, modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .pointerInput(onClose) { detectTapGestures { onClose() } }
+            .semantics(mergeDescendants = true) {
+                contentDescription = ""
+                onClick {
+                    onClose()
+                    true
+                }
+            }
+            .onKeyEvent {
+                if (it.key == Key.Escape) {
+                    onClose()
+                    true
+                } else {
+                    false
+                }
+            }
+            .background(Color.DarkGray.copy(alpha = 0.75f))
+    )
 }

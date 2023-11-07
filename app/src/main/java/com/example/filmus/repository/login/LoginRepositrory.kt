@@ -4,12 +4,12 @@ import android.util.Log
 import com.example.filmus.api.ApiService
 import com.example.filmus.api.LoginRequest
 import com.example.filmus.domain.MoshiProvider
-import com.example.filmus.domain.TokenManager
+import com.example.filmus.domain.UserManager
 import com.example.filmus.domain.login.LoginResult
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 
-class LoginRepository(private val apiService: ApiService, private val tokenManager: TokenManager) {
+class LoginRepository(private val apiService: ApiService, private val userManager: UserManager) {
     suspend fun login(username: String, password: String): LoginResult {
         try {
             Log.d("LoginRepository", "login: $username, $password")
@@ -20,7 +20,8 @@ class LoginRepository(private val apiService: ApiService, private val tokenManag
             if (response.isSuccessful) {
                 val token = response.body()?.token
                 if (!token.isNullOrBlank()) {
-                    tokenManager.saveToken(token)
+                    userManager.saveToken(token)
+                    userManager.checkToken()
                     return LoginResult.Success(token)
                 }
             } else if (response.code() == 400) {
