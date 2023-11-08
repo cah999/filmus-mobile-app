@@ -1,5 +1,9 @@
 package com.example.filmus.domain.favorite
 
 data class Poster(
-    val imageResource: Int, val title: String, val rating: Int? = null
+    val id: String,
+    val name: String?,
+    val poster: String?,
+    val year: Int,
+    val country: String?,
 )

@@ -1,6 +1,6 @@
 package com.example.filmus.api
 
-import com.example.filmus.domain.database.ProfileEntity
+import com.example.filmus.domain.database.profile.ProfileEntity
 import com.example.filmus.domain.main.Movie
 import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
@@ -12,6 +12,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -91,6 +92,11 @@ data class ProfileResponse(
     @Json(name = "gender") val gender: Int
 )
 
+
+data class FavoritesResponse(
+    @Json(name = "movies") val results: List<Movie>
+)
+
 fun ProfileResponse.toProfileEntity(): ProfileEntity {
     return ProfileEntity(
         id = this.id,
@@ -115,6 +121,12 @@ sealed class ProfileUpdateResult {
     data class Unauthorized(val message: String) : ProfileUpdateResult()
     data class Error(val message: String) : ProfileUpdateResult()
 }
+
+data class ReviewRequest(
+    @Json(name = "reviewText") val reviewText: String,
+    @Json(name = "rating") val rating: Int,
+    @Json(name = "isAnonymous") val isAnonymous: Boolean
+)
 
 class AuthInterceptor(private val token: String) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): AuthResponse {
@@ -146,6 +158,37 @@ interface ApiService {
 
     @GET("/api/movies/details/{id}")
     suspend fun getDetailedMovie(@Path("id") id: String): Response<DetailedMovieResponse>
+
+    @GET("/api/favorites")
+    suspend fun getFavorites(): Response<FavoritesResponse>
+
+    @POST("/api/favorites/{id}/add")
+    suspend fun addFavorite(@Path("id") id: String): Response<Unit>
+
+    @DELETE("/api/favorites/{id}/delete")
+    suspend fun removeFavorite(@Path("id") id: String): Response<Unit>
+
+    @POST("/api/movie/{movieID}/review/add")
+    suspend fun addReview(
+        @Path("movieID") movieID: String,
+        @Body reviewRequest: RequestBody
+    ): Response<Unit>
+
+    @PUT("/api/movie/{movieID}/review/{reviewID}/edit")
+    suspend fun editReview(
+        @Path("movieID") movieID: String,
+        @Path("reviewID") reviewID: String,
+        @Body reviewRequest: RequestBody
+    ): Response<Unit>
+
+
+    @DELETE("/api/movie/{movieID}/review/{reviewID}/delete")
+    suspend fun removeReview(
+        @Path("movieID") movieID: String,
+        @Path("reviewID") reviewID: String,
+    ): Response<Unit>
+
+
 }
 
 

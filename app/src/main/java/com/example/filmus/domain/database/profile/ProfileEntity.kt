@@ -1,4 +1,4 @@
-package com.example.filmus.domain.database
+package com.example.filmus.domain.database.profile
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

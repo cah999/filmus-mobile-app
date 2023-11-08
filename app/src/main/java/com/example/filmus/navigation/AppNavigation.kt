@@ -8,9 +8,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.filmus.R
 import com.example.filmus.domain.UserManager
-import com.example.filmus.domain.favorite.Poster
 import com.example.filmus.ui.screens.favorites.FavoritesScreen
 import com.example.filmus.ui.screens.login.LoginScreen
 import com.example.filmus.ui.screens.main.MainScreen
@@ -51,18 +49,12 @@ fun AppNavigation(
             RegistrationPwdScreen(navController = navController, viewModel = registrationViewModel)
         }
         composable(Screen.Favorite.route) {
-            val posters: List<Poster> = listOf(
-                Poster(R.drawable.splash_background, "Постер 1", 9),
-                Poster(R.drawable.ic_launcher_background, "Постер 2", 3),
-                Poster(R.drawable.splash_background, "Постер 3"),
-                Poster(R.drawable.ic_launcher_background, "Постер 4", 4),
-            )
             FavoritesScreen(
-                posters = posters, navController = navController
+                navController = navController, userManager = userManager
             )
         }
         composable(Screen.Main.route) {
-            MainScreen(navController = navController)
+            MainScreen(navController = navController, userManager = userManager)
         }
         composable(Screen.Profile.route) {
             ProfileScreen(navController = navController, userManager)
@@ -71,12 +63,10 @@ fun AppNavigation(
             "${Screen.Movie.route}/{movieId}",
             arguments = listOf(navArgument("movieId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val movieId = backStackEntry.arguments?.getString("movieId") ?: ""
             MovieDetailsScreen(
-                movieId = movieId,
-                isFavorite = false,
-                onFavoriteToggle = { },
-                navController = navController
+                movieId = backStackEntry.arguments?.getString("movieId") ?: "",
+                navController = navController,
+                userManager = userManager
             )
         }
     }

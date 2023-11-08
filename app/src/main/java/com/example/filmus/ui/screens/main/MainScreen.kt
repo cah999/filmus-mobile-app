@@ -1,6 +1,5 @@
 package com.example.filmus.ui.screens.main
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +36,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.filmus.R
 import com.example.filmus.domain.UIState
+import com.example.filmus.domain.UserManager
 import com.example.filmus.navigation.Screen
 import com.example.filmus.ui.screens.main.carousel.Carousel
 import com.example.filmus.viewmodel.mainscreen.MainViewModel
@@ -46,14 +46,15 @@ import kotlin.math.min
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(navController: NavHostController) {
-    val viewModel: MainViewModel = viewModel(factory = MainViewModelFactory())
-    LaunchedEffect(Unit) {
-        viewModel.getMovies(1)
-    }
+fun MainScreen(navController: NavHostController, userManager: UserManager) {
+    val viewModel: MainViewModel = viewModel(factory = MainViewModelFactory(userManager))
     val screenState by viewModel.screenState
     val listState = rememberLazyListState()
     val movies = viewModel.movies
+    LaunchedEffect(Unit) {
+        viewModel.getProfileReviews()
+    }
+    val userReviews = viewModel.userReviews
     val pagerState = rememberPagerState { min(4, movies.size) }
     LazyColumn(
         modifier = Modifier
@@ -128,14 +129,13 @@ fun MainScreen(navController: NavHostController) {
                     movieCountry = movie.country,
                     movieGenres = movie.genres,
                     movieRating = movie.reviews.map { it.rating }.average().toFloat(),
-                    userRating = 5,
+                    userRating = movie.reviews.find { userReviews.value.contains(it.id) }?.rating,
                     onClick = {
                         navController.navigate("${Screen.Movie.route}/${movie.id}")
                     }
                 )
             }
         }
-        Log.d("MainScreen", "MainScreen: $screenState")
         if (screenState == UIState.LOADING) {
             item {
                 LinearProgressIndicator(

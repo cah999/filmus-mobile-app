@@ -20,11 +20,6 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -42,15 +37,19 @@ import com.example.filmus.R
 import com.example.filmus.ui.fields.CustomBigTextField
 import com.gowtham.ratingbar.RatingBar
 
+// todo не передавать на экране favorites вьюшку а сделать он клик
 @Composable
 fun ReviewDialog(
     onDismissRequest: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    rating: Int,
+    onRatingChanged: (Int) -> Unit,
+    reviewText: String,
+    onReviewChanged: (String) -> Unit,
+    isAnonymous: Boolean,
+    onIsAnonymousChanged: (Boolean) -> Unit,
 ) {
-    var rating by remember { mutableIntStateOf(0) }
-    var reviewText by remember { mutableStateOf("") }
-    var isAnonymous by remember { mutableStateOf(false) }
-    val buttonEnabled = rating != 0 && reviewText.isNotEmpty()
+    val buttonEnabled = reviewText.isNotEmpty()
 
     Dialog(
         onDismissRequest = { onDismissRequest() },
@@ -75,26 +74,22 @@ fun ReviewDialog(
                         ),
                 )
                 Spacer(modifier = Modifier.height(15.dp))
-                RatingBar(
-                    value = rating.toFloat(),
+                RatingBar(value = rating.toFloat(),
                     painterEmpty = painterResource(id = R.drawable.rating),
                     painterFilled = painterResource(id = R.drawable.rating_filled),
                     numOfStars = 10,
                     size = 25.dp,
                     spaceBetween = (2.5).dp,
                     onValueChange = {
-                        rating = it.toInt()
+                        onRatingChanged(it.toInt())
                     },
                     onRatingChanged = {
                         Log.d("TAG", "onRatingChanged: $it")
-                    }
-                )
+                    })
                 Spacer(modifier = Modifier.height(10.dp))
-                CustomBigTextField(
-                    placeholder = "Напишите отзыв",
+                CustomBigTextField(placeholder = "Напишите отзыв",
                     textFieldValue = reviewText,
-                    onValueChange = { reviewText = it }
-                )
+                    onValueChange = { onReviewChanged(it) })
                 Spacer(modifier = Modifier.height(14.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -111,7 +106,7 @@ fun ReviewDialog(
                     ) {
                         Checkbox(
                             checked = isAnonymous,
-                            onCheckedChange = { isAnonymous = it },
+                            onCheckedChange = { onIsAnonymousChanged(it) },
                             colors = CheckboxDefaults.colors(
                                 checkedColor = Color(0xFFFC315E),
                                 uncheckedColor = Color(0xFFE1E3E6),
@@ -135,7 +130,8 @@ fun ReviewDialog(
                 Spacer(modifier = Modifier.height(25.dp))
                 Button(
                     onClick = {
-
+                        onClick()
+                        onDismissRequest()
                     },
                     modifier = Modifier
                         .width(308.dp)

@@ -11,7 +11,7 @@ import com.example.filmus.api.ProfileUpdateResult
 import com.example.filmus.api.createApiService
 import com.example.filmus.api.toProfileEntity
 import com.example.filmus.domain.UserManager
-import com.example.filmus.domain.database.ProfileEntity
+import com.example.filmus.domain.database.profile.ProfileEntity
 import com.example.filmus.domain.profile.ProfileUseCase
 import com.example.filmus.repository.profile.ProfileRepository
 import kotlinx.coroutines.launch
@@ -34,7 +34,6 @@ class ProfileViewModel(private val userManager: UserManager) : ViewModel() {
             val apiService = createApiService(token = userManager.getToken())
             val profileRepository = ProfileRepository(apiService, userManager)
             val profileUseCase = ProfileUseCase(profileRepository)
-            userManager.clearCache()
             profileUseCase.logout()
             isLogout.value = true
             logoutMessage.value = "Вы успешно вышли из аккаунта!"

@@ -9,10 +9,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.filmus.domain.favorite.Poster
+import androidx.navigation.NavController
+import com.example.filmus.domain.main.Movie
+import com.example.filmus.viewmodel.favorites.FavoritesViewModel
 
 @Composable
-fun PosterItem(poster: Poster, nextPoster: Poster? = null, fullWidth: Boolean) {
+fun PosterItem(
+    movie: Movie,
+    nextMovie: Movie? = null,
+    fullWidth: Boolean,
+    userReviews: List<String>,
+    navController: NavController,
+    viewModel: FavoritesViewModel
+) {
     Row(
         modifier = Modifier
             .padding(start = 20.dp, end = 20.dp, top = 20.dp)
@@ -21,17 +30,16 @@ fun PosterItem(poster: Poster, nextPoster: Poster? = null, fullWidth: Boolean) {
     ) {
         if (fullWidth) {
             PosterCard(
-                poster = poster, 227.dp, 328.dp
-
+                movie = movie, 227.dp, 328.dp, userReviews, navController, viewModel
             )
         } else {
             PosterCard(
-                poster = poster, 244.dp, 156.5.dp
+                movie = movie, 244.dp, 156.5.dp, userReviews, navController, viewModel
             )
             Spacer(modifier = Modifier.width(16.dp))
-            if (nextPoster != null) {
+            if (nextMovie != null) {
                 PosterCard(
-                    poster = nextPoster, 244.dp, 156.5.dp
+                    movie = nextMovie, 244.dp, 156.5.dp, userReviews, navController, viewModel
                 )
             }
         }

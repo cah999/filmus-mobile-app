@@ -1,7 +1,7 @@
 package com.example.filmus.repository.profile
 
-import com.example.filmus.domain.database.ProfileDao
-import com.example.filmus.domain.database.ProfileEntity
+import com.example.filmus.domain.database.profile.ProfileDao
+import com.example.filmus.domain.database.profile.ProfileEntity
 import kotlinx.coroutines.flow.Flow
 
 class CacheProfileRepository(private val profileDao: ProfileDao) {
@@ -15,5 +15,9 @@ class CacheProfileRepository(private val profileDao: ProfileDao) {
 
     suspend fun clearProfile() {
         profileDao.deleteProfile()
+    }
+
+    suspend fun getProfileId(): String {
+        return profileDao.getProfileId()
     }
 }

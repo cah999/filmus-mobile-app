@@ -5,12 +5,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -49,22 +50,23 @@ fun ReviewMark(mark: Int, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .background(
-                color = Color(containerColor), shape = RoundedCornerShape(size = 35.dp)
+                color = Color(containerColor),
+                shape = RoundedCornerShape(size = 35.dp)
             )
-            .width(38.dp)
+            .widthIn(38.dp, 41.dp)
             .height(26.dp)
-            .padding(start = 4.dp, bottom = 0.dp, top = 0.dp, end = 4.dp),
+            .padding(start = 4.dp, end = 4.dp)
+            .wrapContentSize(align = Alignment.Center),
+        contentAlignment = Alignment.Center
     ) {
         Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.star_3),
                 contentDescription = null,
-                modifier = Modifier
-                    .size(12.dp),
+                modifier = Modifier.size(12.dp),
                 tint = Color(0xFFFFFFFF)
             )
             Spacer(modifier = Modifier.width(4.dp))
@@ -77,9 +79,10 @@ fun ReviewMark(mark: Int, modifier: Modifier = Modifier) {
                     color = Color(0xFFFFFFFF),
                 ),
                 textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
+
+
 }

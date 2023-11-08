@@ -8,16 +8,23 @@ import com.example.filmus.api.ProfileResponse
 import com.example.filmus.api.ProfileResult
 import com.example.filmus.api.createApiService
 import com.example.filmus.api.toProfileEntity
-import com.example.filmus.domain.database.ProfileDatabase
-import com.example.filmus.domain.database.ProfileEntity
+import com.example.filmus.domain.database.favorites.FavoritesDatabase
+import com.example.filmus.domain.database.profile.ProfileDatabase
+import com.example.filmus.domain.database.profile.ProfileEntity
+import com.example.filmus.domain.database.reviews.UserReviewDatabase
+import com.example.filmus.domain.favorite.FavoritesCacheUseCase
 import com.example.filmus.domain.profile.CacheProfileUseCase
 import com.example.filmus.domain.profile.ProfileUseCase
+import com.example.filmus.domain.userReviews.UserReviewsUseCase
+import com.example.filmus.repository.favorites.FavoritesCacheRepository
 import com.example.filmus.repository.profile.CacheProfileRepository
 import com.example.filmus.repository.profile.ProfileRepository
+import com.example.filmus.repository.userReviews.UserReviewsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
+// todo cache manager
 class UserManager(private val context: Context) {
     private val masterKeyAlias = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -25,6 +32,10 @@ class UserManager(private val context: Context) {
 
     private val profileDatabase = ProfileDatabase.getDatabase(context)
     private val profileDao = profileDatabase.profileDao()
+    private val userReviewDatabase = UserReviewDatabase.getDatabase(context)
+    private val userReviewDao = userReviewDatabase.userReviewDao()
+    private val favoritesDatabase = FavoritesDatabase.getDatabase(context)
+    private val favoritesDao = favoritesDatabase.favoritesDao()
 
     suspend fun saveToken(token: String) {
         try {
@@ -78,10 +89,39 @@ class UserManager(private val context: Context) {
         }
     }
 
+    suspend fun getFavorites(): List<String> {
+        val favoritesUseCase = FavoritesCacheUseCase(FavoritesCacheRepository(favoritesDao))
+        return favoritesUseCase.getFavorites(getProfileID())
+    }
+
+    suspend fun addFavorites(favorites: List<String>, clearOld: Boolean = false) {
+        val favoritesUseCase = FavoritesCacheUseCase(FavoritesCacheRepository(favoritesDao))
+        favoritesUseCase.addFavorites(favorites, getProfileID(), clearOld)
+    }
+
+    suspend fun removeFavorites(favorites: List<String>) {
+        val favoritesUseCase = FavoritesCacheUseCase(FavoritesCacheRepository(favoritesDao))
+        favoritesUseCase.removeFavorites(favorites, getProfileID())
+    }
 
     suspend fun getProfile(): Flow<ProfileEntity?> {
-        val getProfileUseCase = CacheProfileUseCase(CacheProfileRepository(profileDao))
-        return getProfileUseCase.getProfile()
+        val profileUseCase = CacheProfileUseCase(CacheProfileRepository(profileDao))
+        return profileUseCase.getProfile()
+    }
+
+    suspend fun getProfileID(): String {
+        val profileUseCase = CacheProfileUseCase(CacheProfileRepository(profileDao))
+        return profileUseCase.getProfileId()
+    }
+
+    suspend fun getProfileReviews(): List<String> {
+        val userReviewsUserCase = UserReviewsUseCase(UserReviewsRepository(userReviewDao))
+        return userReviewsUserCase.getProfileReviews(getProfileID())
+    }
+
+    suspend fun addUserReview(userID: String, reviewID: String) {
+        val userReviewsUserCase = UserReviewsUseCase(UserReviewsRepository(userReviewDao))
+        userReviewsUserCase.addReview(userID, reviewID)
     }
 
     suspend fun cacheProfile(profile: ProfileResponse) {
@@ -123,4 +163,6 @@ class UserManager(private val context: Context) {
         }
         return false
     }
+
+
 }

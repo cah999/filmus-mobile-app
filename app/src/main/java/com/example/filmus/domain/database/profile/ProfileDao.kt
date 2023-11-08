@@ -1,4 +1,4 @@
-package com.example.filmus.domain.database
+package com.example.filmus.domain.database.profile
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -16,4 +16,7 @@ interface ProfileDao {
 
     @Query("DELETE FROM profile")
     suspend fun deleteProfile()
+
+    @Query("SELECT id FROM profile LIMIT 1")
+    suspend fun getProfileId(): String
 }

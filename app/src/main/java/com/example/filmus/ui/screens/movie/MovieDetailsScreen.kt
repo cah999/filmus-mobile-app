@@ -57,44 +57,42 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
 import com.example.filmus.R
+import com.example.filmus.domain.UserManager
 import com.example.filmus.ui.marks.FilmMark
 import com.example.filmus.ui.screens.main.customShimmer
 import com.example.filmus.viewmodel.movie.MovieViewModel
 import com.example.filmus.viewmodel.movie.MovieViewModelFactory
 
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MovieDetailsScreen(
-    movieId: String,
-    isFavorite: Boolean,
-    onFavoriteToggle: (Boolean) -> Unit,
-    navController: NavHostController
+    movieId: String, navController: NavHostController, userManager: UserManager
 ) {
-    val viewModel: MovieViewModel = viewModel(factory = MovieViewModelFactory(movieId))
+    val viewModel: MovieViewModel = viewModel(factory = MovieViewModelFactory(movieId, userManager))
     val movie by viewModel.movieDetails
+    var isFavorite by viewModel.isFavorite
     LaunchedEffect(Unit) {
         viewModel.getMovieDetails()
     }
-
     val scrollState = rememberScrollState()
     val fadingEdgeModifier = Modifier.fadingEdges(
         scrollState = scrollState
     )
     val maxScrollDistance = with(LocalDensity.current) { (569.5).dp.toPx() }.toInt()
     var showDialog by remember { mutableStateOf(false) }
+    var existsReviewID by viewModel.existsReviewID
+    existsReviewID = movie?.reviews?.find { it?.id in viewModel.userReviews }?.id
 
     LaunchedEffect(scrollState.value) {
-        if (scrollState.value <= maxScrollDistance / 3) {
+        if (scrollState.value <= maxScrollDistance / 7) {
             scrollState.animateScrollTo(0)
-        } else if (scrollState.value > maxScrollDistance / 3 && scrollState.value < maxScrollDistance) {
-            scrollState.animateScrollTo(maxScrollDistance)
         }
     }
 
     val hasScrolledToTitle = scrollState.value >= maxScrollDistance
-
+    val imagePoster = rememberAsyncImagePainter(model = movie?.poster ?: "")
     Scaffold(containerColor = Color(0xFF1D1D1D), topBar = {
         CenterAlignedTopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = Color(0xFF1D1D1D)
@@ -106,7 +104,7 @@ fun MovieDetailsScreen(
                 )
             }
         }, actions = {})
-    }, content = {
+    }, content = { it ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -163,7 +161,7 @@ fun MovieDetailsScreen(
                 }
             } else {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
+                    painter = imagePoster,
                     contentDescription = null,
                     modifier = Modifier
                         .width(360.dp)
@@ -176,7 +174,7 @@ fun MovieDetailsScreen(
                             )
                             onDrawWithContent {
                                 drawContent()
-                                drawRect(gradient, blendMode = BlendMode.Darken)
+                                drawRect(gradient, blendMode = BlendMode.DstOut)
                             }
                         },
                     contentScale = ContentScale.Crop
@@ -197,19 +195,21 @@ fun MovieDetailsScreen(
                         )
                         (if (movie!!.name == null) "Фильм" else movie!!.name)?.let { title ->
                             Text(
-                                text = title,
-                                style = TextStyle(
+                                text = title, style = TextStyle(
                                     fontSize = 24.sp,
                                     fontFamily = FontFamily(Font(R.font.inter)),
                                     fontWeight = FontWeight(700),
                                     color = Color(0xFFFFFFFF),
                                     textAlign = TextAlign.Center,
-                                ),
-                                modifier = Modifier.weight(1f)
+                                ), modifier = Modifier.width(212.dp)
                             )
                         }
                         IconButton(
-                            onClick = { onFavoriteToggle(!isFavorite) },
+                            onClick = {
+                                isFavorite = !isFavorite
+                                if (isFavorite) viewModel.addFavorite(movieId)
+                                else viewModel.removeFavorite(movieId)
+                            },
                             modifier = Modifier
                                 .background(Color(0xFF404040), shape = CircleShape)
                                 .width(40.dp)
@@ -311,10 +311,7 @@ fun MovieDetailsScreen(
                                         shape = RoundedCornerShape(size = 5.dp)
                                     )
                                     .padding(
-                                        start = 10.dp,
-                                        top = 5.dp,
-                                        end = 10.dp,
-                                        bottom = 5.dp
+                                        start = 10.dp, top = 5.dp, end = 10.dp, bottom = 5.dp
                                     )
                             )
                         }
@@ -350,30 +347,22 @@ fun MovieDetailsScreen(
                     if (movie!!.budget != null) {
                         movie!!.budget?.let { title ->
                             InfoRow(
-                                "Бюджет",
-                                "\$${title}",
-                                infoModifier
+                                "Бюджет", "\$${title}", infoModifier
                             )
                         }
                     }
                     if (movie!!.fees != null) {
                         movie!!.fees?.let { title ->
                             InfoRow(
-                                "Сборы в мире",
-                                "\$${title}",
-                                infoModifier
+                                "Сборы в мире", "\$${title}", infoModifier
                             )
                         }
                     }
                     InfoRow(
-                        "Возраст",
-                        "${movie!!.ageLimit}+",
-                        infoModifier
+                        "Возраст", "${movie!!.ageLimit}+", infoModifier
                     )
                     InfoRow(
-                        "Время",
-                        "${movie!!.time} мин.",
-                        infoModifier
+                        "Время", "${movie!!.time} мин.", infoModifier
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
@@ -392,7 +381,7 @@ fun MovieDetailsScreen(
                                 )
                         )
                         Spacer(modifier = Modifier.weight(1f))
-                        IconButton(
+                        if (existsReviewID == null) IconButton(
                             onClick = { showDialog = true },
                             modifier = Modifier
                                 .background(Color(0xFFFC315E), shape = CircleShape)
@@ -411,28 +400,49 @@ fun MovieDetailsScreen(
                     }
 
                     Spacer(modifier = Modifier.height(15.dp))
-
                     if (movie!!.reviews.isNotEmpty()) {
-                        movie!!.reviews.forEach { review ->
+                        if (existsReviewID != null) {
+                            val review = movie!!.reviews.find { it?.id == existsReviewID }
                             if (review != null) {
-                                ReviewCard(review)
+                                ReviewCard(review, review.id in viewModel.userReviews, onEdit = {
+                                    viewModel.review.value = review.reviewText ?: ""
+                                    viewModel.rating.intValue = review.rating
+                                    viewModel.isAnonymous.value = review.isAnonymous
+                                    viewModel.reviewID.value = review.id
+                                    showDialog = true
+                                }, onDelete = { viewModel.removeReview(review.id) })
                             }
-                            if (review != movie!!.reviews.last()) {
-                                Spacer(modifier = Modifier.height(20.dp))
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                        }
+                        movie!!.reviews.forEach { review ->
+                            if (!(existsReviewID != null && review?.id == existsReviewID)) {
+                                if (review != null) {
+                                    ReviewCard(review,
+                                        review.id in viewModel.userReviews,
+                                        onEdit = {
+                                            viewModel.review.value = review.reviewText ?: ""
+                                            viewModel.rating.intValue = review.rating
+                                            viewModel.isAnonymous.value = review.isAnonymous
+                                            viewModel.reviewID.value = review.id
+                                            showDialog = true
+                                        },
+                                        onDelete = { viewModel.removeReview(review.id) })
+                                }
+                                if (review != movie!!.reviews.last()) {
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                }
                             }
                         }
                     } else {
                         Text(
-                            text = "Нет отзывов",
-                            style = TextStyle(
+                            text = "Нет отзывов", style = TextStyle(
                                 fontSize = 16.sp,
                                 fontFamily = FontFamily(Font(R.font.inter)),
                                 fontWeight = FontWeight(50),
                                 color = Color(0xFFFFFFFF),
 
-                                ),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                                ), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -447,15 +457,13 @@ fun MovieDetailsScreen(
             ), title = {
                 (if (movie!!.name == null) "Фильм" else movie!!.name)?.let {
                     Text(
-                        text = it,
-                        style = TextStyle(
+                        text = it, style = TextStyle(
                             fontSize = 24.sp,
                             fontFamily = FontFamily(Font(R.font.inter)),
                             fontWeight = FontWeight(700),
                             color = Color(0xFFFFFFFF),
 
-                            ),
-                        textAlign = TextAlign.Center,
+                            ), textAlign = TextAlign.Center, maxLines = 2
                     )
                 }
             }, navigationIcon = {
@@ -467,7 +475,11 @@ fun MovieDetailsScreen(
             }, actions = {
                 Box(Modifier.padding(end = 15.dp), contentAlignment = Alignment.CenterEnd) {
                     IconButton(
-                        onClick = { onFavoriteToggle(!isFavorite) },
+                        onClick = {
+                            isFavorite = !isFavorite
+                            if (isFavorite) viewModel.addFavorite(movieId)
+                            else viewModel.removeFavorite(movieId)
+                        },
                         modifier = Modifier
                             .background(Color(0xFF404040), shape = CircleShape)
                             .width(40.dp)
@@ -490,9 +502,14 @@ fun MovieDetailsScreen(
         }
     }
     if (showDialog) {
-        ReviewDialog(
-            onDismissRequest = { showDialog = false },
-            onClick = { showDialog = false })
+        ReviewDialog(onDismissRequest = { showDialog = false },
+            onClick = { if (existsReviewID != null) viewModel.editReview() else viewModel.addReview() },
+            rating = viewModel.rating.intValue,
+            onRatingChanged = { viewModel.rating.intValue = it },
+            reviewText = viewModel.review.value,
+            onReviewChanged = { viewModel.review.value = it },
+            isAnonymous = viewModel.isAnonymous.value,
+            onIsAnonymousChanged = { viewModel.isAnonymous.value = it })
     }
 }
 

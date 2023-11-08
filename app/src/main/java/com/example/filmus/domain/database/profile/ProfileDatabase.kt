@@ -1,4 +1,4 @@
-package com.example.filmus.domain.database
+package com.example.filmus.domain.database.profile
 
 import android.content.Context
 import androidx.room.Database

@@ -27,6 +27,7 @@ class ProfileRepository(
                 }
             } else if (response.code() == 401) {
                 userManager.clearToken()
+                userManager.clearCache()
                 return ProfileResult.Unauthorized("Unauthorized")
             }
         } catch (e: Exception) {
@@ -41,6 +42,7 @@ class ProfileRepository(
             Log.d("ProfileRepository", "logout: $response")
             if (response.isSuccessful) {
                 userManager.clearToken()
+                userManager.clearCache()
             }
         } catch (e: Exception) {
             Log.d("ProfileRepository", "logout: ${e.message}")
@@ -58,6 +60,8 @@ class ProfileRepository(
                     return ProfileUpdateResult.Success("Success")
                 }
             } else if (response.code() == 401) {
+                userManager.clearToken()
+                userManager.clearCache()
                 return ProfileUpdateResult.Unauthorized("Unauthorized")
             }
             return ProfileUpdateResult.Error("Error")

@@ -43,22 +43,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import com.example.filmus.R
 import com.example.filmus.api.ReviewResponse
 import com.example.filmus.ui.marks.ReviewMark
 import java.text.SimpleDateFormat
 
 @Composable
-fun ReviewCard(review: ReviewResponse) {
-    val isUser = true
+fun ReviewCard(review: ReviewResponse, isUser: Boolean, onEdit: () -> Unit, onDelete: () -> Unit) {
+    val imagePainter = rememberAsyncImagePainter(model = review.author?.avatar ?: "")
     Column {
         Row(
             Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = if (review.isAnonymous) painterResource(id = R.drawable.anonymous) else painterResource(
-                    id = R.drawable.ic_launcher_background
-                ),
+                painter = if (review.isAnonymous) painterResource(id = R.drawable.anonymous) else imagePainter,
                 contentDescription = null,
                 modifier = Modifier
                     .size(40.dp)
@@ -66,18 +65,16 @@ fun ReviewCard(review: ReviewResponse) {
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(10.dp))
-            Column() {
+            Column {
                 (if (review.isAnonymous) "Анонимный пользователь" else review.author?.nickName)?.let {
                     Text(
-                        text = it,
-                        style = TextStyle(
+                        text = it, style = TextStyle(
                             fontSize = 14.sp,
                             fontFamily = FontFamily(Font(R.font.inter)),
                             fontWeight = FontWeight(500),
                             color = Color(0xFFFFFFFF),
 
-                            ),
-                        textAlign = TextAlign.Center
+                            ), textAlign = TextAlign.Center
                     )
                 }
                 if (isUser) Text(
@@ -104,8 +101,7 @@ fun ReviewCard(review: ReviewResponse) {
                             .width(26.dp)
                             .height(26.dp)
                     ) {
-                        Icon(
-                            Icons.Default.MoreVert,
+                        Icon(Icons.Default.MoreVert,
                             contentDescription = null,
                             modifier = Modifier
                                 .width(20.dp)
@@ -124,33 +120,35 @@ fun ReviewCard(review: ReviewResponse) {
                             .widthIn(177.dp),
 
                         ) {
-                        DropdownMenuItem(colors = MenuDefaults.itemColors(
-                            textColor = Color(0xFFFFFFFF),
-                            trailingIconColor = Color(0xFFFFFFFF),
-                        ), contentPadding = PaddingValues(
-                            start = 8.dp, end = 8.dp, top = 10.dp, bottom = 10.dp
-                        ), trailingIcon = {
-                            Icon(
-                                painterResource(id = R.drawable.edit),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .width(24.dp)
-                                    .height(24.dp),
-                            )
-                        }, text = {
-                            Text(
-                                "Редактировать", style = TextStyle(
-                                    fontSize = 14.sp,
-                                    fontFamily = FontFamily(Font(R.font.inter)),
-                                    fontWeight = FontWeight(500),
-
-                                    textAlign = TextAlign.Center,
+                        DropdownMenuItem(
+                            colors = MenuDefaults.itemColors(
+                                textColor = Color(0xFFFFFFFF),
+                                trailingIconColor = Color(0xFFFFFFFF),
+                            ), contentPadding = PaddingValues(
+                                start = 8.dp, end = 8.dp, top = 10.dp, bottom = 10.dp
+                            ), trailingIcon = {
+                                Icon(
+                                    painterResource(id = R.drawable.edit),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .width(24.dp)
+                                        .height(24.dp),
                                 )
-                            )
+                            }, text = {
+                                Text(
+                                    "Редактировать", style = TextStyle(
+                                        fontSize = 14.sp,
+                                        fontFamily = FontFamily(Font(R.font.inter)),
+                                        fontWeight = FontWeight(500),
 
-                        }, onClick = {
-                            expanded = false
-                        })
+                                        textAlign = TextAlign.Center,
+                                    )
+                                )
+
+                            }, onClick = {
+                                onEdit()
+                                expanded = false
+                            })
                         Divider(color = Color(0xFF55595D), thickness = 1.dp)
                         DropdownMenuItem(colors = MenuDefaults.itemColors(
                             textColor = Color(0xFFE64646),
@@ -176,6 +174,7 @@ fun ReviewCard(review: ReviewResponse) {
                                 )
                             )
                         }, onClick = {
+                            onDelete()
                             expanded = false
                         })
                     }

@@ -7,16 +7,23 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.filmus.api.createApiService
 import com.example.filmus.domain.UIState
+import com.example.filmus.domain.UserManager
 import com.example.filmus.domain.main.MainUseCase
 import com.example.filmus.domain.main.Movie
 import com.example.filmus.repository.main.MainRepository
 import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
+class MainViewModel(private val userManager: UserManager) : ViewModel() {
     val screenState = mutableStateOf(UIState.DEFAULT)
     val movies = mutableStateListOf<Movie>()
     private var currentPage = 1
-    fun getMovies(page: Int) {
+    val userReviews = mutableStateOf(listOf<String>())
+
+    init {
+        getMovies(1)
+    }
+
+    private fun getMovies(page: Int) {
         viewModelScope.launch {
             try {
                 val apiService = createApiService()
@@ -33,9 +40,19 @@ class MainViewModel : ViewModel() {
 
     fun loadNextPage() {
         currentPage++
+        Log.d("MainViewModel", "loadNextPage: $currentPage")
         screenState.value = UIState.LOADING
         viewModelScope.launch {
             getMovies(currentPage)
+        }
+    }
+
+    fun getProfileReviews() {
+        viewModelScope.launch {
+            userManager.getProfileReviews().let { reviews ->
+                Log.d("FavoritesViewModel", "getProfileReviews: $reviews")
+                userReviews.value = reviews
+            }
         }
     }
 }
