@@ -94,4 +94,5 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation("io.coil-kt:coil-gif:2.5.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0-alpha03")
+    implementation("org.jsoup:jsoup:1.16.2")
 }

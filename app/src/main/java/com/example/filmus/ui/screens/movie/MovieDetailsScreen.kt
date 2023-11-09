@@ -1,9 +1,11 @@
 package com.example.filmus.ui.screens.movie
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,7 +67,9 @@ import com.example.filmus.ui.screens.main.customShimmer
 import com.example.filmus.viewmodel.movie.MovieViewModel
 import com.example.filmus.viewmodel.movie.MovieViewModelFactory
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class
+)
 @Composable
 fun MovieDetailsScreen(
     movieId: String, navController: NavHostController, userManager: UserManager
@@ -83,6 +87,7 @@ fun MovieDetailsScreen(
     val maxScrollDistance = with(LocalDensity.current) { (569.5).dp.toPx() }.toInt()
     var showDialog by remember { mutableStateOf(false) }
     var existsReviewID by viewModel.existsReviewID
+    var showSheet by remember { mutableStateOf(false) }
     existsReviewID = movie?.reviews?.find { it?.id in viewModel.userReviews }?.id
 
     LaunchedEffect(scrollState.value) {
@@ -160,8 +165,7 @@ fun MovieDetailsScreen(
                     )
                 }
             } else {
-                Image(
-                    painter = imagePoster,
+                Image(painter = imagePoster,
                     contentDescription = null,
                     modifier = Modifier
                         .width(360.dp)
@@ -176,7 +180,8 @@ fun MovieDetailsScreen(
                                 drawContent()
                                 drawRect(gradient, blendMode = BlendMode.DstOut)
                             }
-                        },
+                        }
+                        .combinedClickable(onClick = { }, onLongClick = { showSheet = true }),
                     contentScale = ContentScale.Crop
                 )
 
@@ -511,6 +516,11 @@ fun MovieDetailsScreen(
             isAnonymous = viewModel.isAnonymous.value,
             onIsAnonymousChanged = { viewModel.isAnonymous.value = it })
     }
+//    if (movie != null) WatchBottomSheet(
+//        showSheet = showSheet,
+//        onDismissSheet = { showSheet = false },
+//        movieName = movie?.name ?: "",
+//    )
 }
 
 
