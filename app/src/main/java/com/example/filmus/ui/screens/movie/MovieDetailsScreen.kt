@@ -186,7 +186,7 @@ fun MovieDetailsScreen(
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Column(Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier.fillMaxWidth(),
@@ -255,7 +255,9 @@ fun MovieDetailsScreen(
                                     val gradient = Brush.verticalGradient(
                                         colors = listOf(
                                             Color.Transparent,
-                                            if (isExpanded) Color.Transparent else Color(0xFF1D1D1D)
+                                            if (isExpanded) Color.Transparent else Color(
+                                                0xFF1D1D1D
+                                            )
                                         ), startY = size.height / 2, endY = size.height
                                     )
                                     onDrawWithContent {
@@ -347,7 +349,13 @@ fun MovieDetailsScreen(
                         movie!!.tagline?.let { title -> InfoRow("Слоган", title, infoModifier) }
                     }
                     if (movie!!.director != null) {
-                        movie!!.director?.let { title -> InfoRow("Режиссёр", title, infoModifier) }
+                        movie!!.director?.let { title ->
+                            InfoRow(
+                                "Режиссёр",
+                                title,
+                                infoModifier
+                            )
+                        }
                     }
                     if (movie!!.budget != null) {
                         movie!!.budget?.let { title ->
@@ -409,13 +417,17 @@ fun MovieDetailsScreen(
                         if (existsReviewID != null) {
                             val review = movie!!.reviews.find { it?.id == existsReviewID }
                             if (review != null) {
-                                ReviewCard(review, review.id in viewModel.userReviews, onEdit = {
-                                    viewModel.review.value = review.reviewText ?: ""
-                                    viewModel.rating.intValue = review.rating
-                                    viewModel.isAnonymous.value = review.isAnonymous
-                                    viewModel.reviewID.value = review.id
-                                    showDialog = true
-                                }, onDelete = { viewModel.removeReview(review.id) })
+                                ReviewCard(
+                                    review,
+                                    review.id in viewModel.userReviews,
+                                    onEdit = {
+                                        viewModel.review.value = review.reviewText ?: ""
+                                        viewModel.rating.intValue = review.rating
+                                        viewModel.isAnonymous.value = review.isAnonymous
+                                        viewModel.reviewID.value = review.id
+                                        showDialog = true
+                                    },
+                                    onDelete = { viewModel.removeReview(review.id) })
                             }
                             Spacer(modifier = Modifier.height(20.dp))
 
@@ -441,16 +453,20 @@ fun MovieDetailsScreen(
                         }
                     } else {
                         Text(
-                            text = "Нет отзывов", style = TextStyle(
+                            text = "Нет отзывов",
+                            style = TextStyle(
                                 fontSize = 16.sp,
                                 fontFamily = FontFamily(Font(R.font.inter)),
                                 fontWeight = FontWeight(50),
                                 color = Color(0xFFFFFFFF),
 
-                                ), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
+                                ),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
+
             }
         }
     })
