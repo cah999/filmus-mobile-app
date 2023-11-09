@@ -18,10 +18,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -48,7 +49,6 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -63,7 +63,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.filmus.R
 import com.example.filmus.domain.UserManager
 import com.example.filmus.ui.marks.FilmMark
-import com.example.filmus.ui.screens.main.customShimmer
 import com.example.filmus.viewmodel.movie.MovieViewModel
 import com.example.filmus.viewmodel.movie.MovieViewModelFactory
 
@@ -80,23 +79,35 @@ fun MovieDetailsScreen(
     LaunchedEffect(Unit) {
         viewModel.getMovieDetails()
     }
-    val scrollState = rememberScrollState()
-    val fadingEdgeModifier = Modifier.fadingEdges(
-        scrollState = scrollState
-    )
-    val maxScrollDistance = with(LocalDensity.current) { (569.5).dp.toPx() }.toInt()
+    val lazyState = rememberLazyListState()
+//    val scrollState = rememberScrollState()
+//    val fadingEdgeModifier = Modifier.fadingEdges(
+//        scrollState = scrollState
+//    )
+//    val maxScrollDistance = with(LocalDensity.current) { (569.5).dp.toPx() }.toInt()
     var showDialog by remember { mutableStateOf(false) }
     var existsReviewID by viewModel.existsReviewID
+    if (movie != null) {
+        existsReviewID = movie?.reviews?.find { it?.id in viewModel.userReviews }?.id
+    }
     var showSheet by remember { mutableStateOf(false) }
-    existsReviewID = movie?.reviews?.find { it?.id in viewModel.userReviews }?.id
+    var isExpanded by remember { mutableStateOf(false) }
+    val maxLines = if (isExpanded) Int.MAX_VALUE else 4
 
-    LaunchedEffect(scrollState.value) {
-        if (scrollState.value <= maxScrollDistance / 7) {
-            scrollState.animateScrollTo(0)
+//    LaunchedEffect(scrollState.value) {
+//        if (scrollState.value <= maxScrollDistance / 7) {
+//            scrollState.animateScrollTo(0)
+//        }
+//    }
+    LaunchedEffect(lazyState.layoutInfo) {
+        if (lazyState.firstVisibleItemIndex == 0) {
+            lazyState.animateScrollToItem(0)
         }
     }
 
-    val hasScrolledToTitle = scrollState.value >= maxScrollDistance
+
+//    val hasScrolledToTitle = scrollState.value >= maxScrollDistance
+    val hasScrolledToTitle = lazyState.firstVisibleItemIndex >= 1
     val imagePoster = rememberAsyncImagePainter(model = movie?.poster ?: "")
     Scaffold(containerColor = Color(0xFF1D1D1D), topBar = {
         CenterAlignedTopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
@@ -110,83 +121,42 @@ fun MovieDetailsScreen(
             }
         }, actions = {})
     }, content = { it ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
-                .then(fadingEdgeModifier)
-                .padding(it)
+//                .verticalScroll(scrollState)
+//                .then(fadingEdgeModifier)
+                .padding(it),
+            state = lazyState
         ) {
             if (movie == null) {
-                Box(
-                    modifier = Modifier
-                        .width(360.dp)
-                        .height(497.dp)
-                        .customShimmer(1000)
-                        .background(Color.Gray),
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Column(Modifier.padding(16.dp)) {
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .width(51.dp)
-                                .height(26.dp)
-                                .customShimmer(1000)
-                                .background(Color.Gray),
-                        )
-                        Box(
-                            modifier = Modifier
-                                .width(212.dp)
-                                .customShimmer(1000)
-                                .background(Color.Gray),
-                        )
-                        Box(
-                            modifier = Modifier
-                                .background(Color(0xFF404040), shape = CircleShape)
-                                .width(40.dp)
-                                .height(40.dp)
-                                .customShimmer(1000)
-                                .background(Color.Gray),
-                        )
-
-                    }
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .customShimmer(1000)
-                            .background(Color.Gray),
-                    )
+                item {
+                    MovieDetailsPlaceholder()
                 }
             } else {
-                Image(painter = imagePoster,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .width(360.dp)
-                        .height(497.dp)
-                        .drawWithCache {
-                            val gradient = Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color(0xFF1D1D1D)),
-                                startY = size.height / 3,
-                                endY = size.height
-                            )
-                            onDrawWithContent {
-                                drawContent()
-                                drawRect(gradient, blendMode = BlendMode.DstOut)
+                item {
+                    Image(painter = imagePoster,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(360.dp)
+                            .height(497.dp)
+                            .drawWithCache {
+                                val gradient = Brush.verticalGradient(
+                                    colors = listOf(Color.Transparent, Color(0xFF1D1D1D)),
+                                    startY = size.height / 3,
+                                    endY = size.height
+                                )
+                                onDrawWithContent {
+                                    drawContent()
+                                    drawRect(gradient, blendMode = BlendMode.DstOut)
+                                }
                             }
-                        }
-                        .combinedClickable(onClick = { }, onLongClick = { showSheet = true }),
-                    contentScale = ContentScale.Crop
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Column(Modifier.padding(16.dp)) {
+                            .combinedClickable(onClick = { }, onLongClick = { showSheet = true }),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                item {
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier.fillMaxWidth(),
@@ -232,10 +202,9 @@ fun MovieDetailsScreen(
 
                     }
                     Spacer(modifier = Modifier.height(20.dp))
+                }
 
-                    var isExpanded by remember { mutableStateOf(false) }
-                    val maxLines = if (isExpanded) Int.MAX_VALUE else 4
-
+                item {
                     AnimatedVisibility(visible = !isExpanded) {
                         Spacer(modifier = Modifier.height(5.dp))
                     }
@@ -285,6 +254,8 @@ fun MovieDetailsScreen(
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
+                }
+                item {
                     Text(
                         text = "Жанры", style = TextStyle(
                             fontSize = 16.sp,
@@ -323,7 +294,8 @@ fun MovieDetailsScreen(
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
-
+                }
+                item {
                     Text(
                         text = "О фильме", style = TextStyle(
                             fontSize = 16.sp,
@@ -371,7 +343,8 @@ fun MovieDetailsScreen(
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
-
+                }
+                item {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
@@ -405,10 +378,13 @@ fun MovieDetailsScreen(
                     }
 
                     Spacer(modifier = Modifier.height(15.dp))
-                    if (movie!!.reviews.isNotEmpty()) {
-                        if (existsReviewID != null) {
-                            val review = movie!!.reviews.find { it?.id == existsReviewID }
+                }
+                if (movie!!.reviews.isNotEmpty()) {
+                    if (existsReviewID != null) {
+                        val review = movie!!.reviews.find { it?.id == existsReviewID }
+                        item {
                             if (review != null) {
+
                                 ReviewCard(review, review.id in viewModel.userReviews, onEdit = {
                                     viewModel.review.value = review.reviewText ?: ""
                                     viewModel.rating.intValue = review.rating
@@ -418,28 +394,30 @@ fun MovieDetailsScreen(
                                 }, onDelete = { viewModel.removeReview(review.id) })
                             }
                             Spacer(modifier = Modifier.height(20.dp))
+                        }
 
+                    }
+                    items(movie!!.reviews.filter { review ->
+                        existsReviewID == null || review?.id != existsReviewID
+                    }) { review ->
+                        if (review != null) {
+                            ReviewCard(
+                                review,
+                                review.id in viewModel.userReviews,
+                                onEdit = {
+                                    viewModel.review.value = review.reviewText ?: ""
+                                    viewModel.rating.intValue = review.rating
+                                    viewModel.isAnonymous.value = review.isAnonymous
+                                    viewModel.reviewID.value = review.id
+                                    showDialog = true
+                                },
+                                onDelete = { viewModel.removeReview(review.id) }
+                            )
+                            Spacer(modifier = Modifier.height(20.dp))
                         }
-                        movie!!.reviews.forEach { review ->
-                            if (!(existsReviewID != null && review?.id == existsReviewID)) {
-                                if (review != null) {
-                                    ReviewCard(review,
-                                        review.id in viewModel.userReviews,
-                                        onEdit = {
-                                            viewModel.review.value = review.reviewText ?: ""
-                                            viewModel.rating.intValue = review.rating
-                                            viewModel.isAnonymous.value = review.isAnonymous
-                                            viewModel.reviewID.value = review.id
-                                            showDialog = true
-                                        },
-                                        onDelete = { viewModel.removeReview(review.id) })
-                                }
-                                if (review != movie!!.reviews.last()) {
-                                    Spacer(modifier = Modifier.height(20.dp))
-                                }
-                            }
-                        }
-                    } else {
+                    }
+                } else {
+                    item {
                         Text(
                             text = "Нет отзывов", style = TextStyle(
                                 fontSize = 16.sp,
@@ -451,6 +429,7 @@ fun MovieDetailsScreen(
                         )
                     }
                 }
+
             }
         }
     })
@@ -516,11 +495,11 @@ fun MovieDetailsScreen(
             isAnonymous = viewModel.isAnonymous.value,
             onIsAnonymousChanged = { viewModel.isAnonymous.value = it })
     }
-//    if (movie != null) WatchBottomSheet(
-//        showSheet = showSheet,
-//        onDismissSheet = { showSheet = false },
-//        movieName = movie?.name ?: "",
-//    )
+    if (movie != null) WatchBottomSheet(
+        showSheet = showSheet,
+        onDismissSheet = { showSheet = false },
+        movieName = movie?.name ?: "",
+    )
 }
 
 
