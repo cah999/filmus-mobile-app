@@ -148,7 +148,7 @@ fun MovieDetailsScreen(
                                 )
                                 onDrawWithContent {
                                     drawContent()
-                                    drawRect(gradient, blendMode = BlendMode.DstOut)
+                                    drawRect(gradient, blendMode = BlendMode.Darken)
                                 }
                             }
                             .combinedClickable(onClick = { }, onLongClick = { showSheet = true }),
