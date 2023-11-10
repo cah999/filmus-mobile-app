@@ -14,8 +14,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class LoginViewModel(private val userManager: UserManager) : ViewModel() {
-    var username = mutableStateOf("")
-    var password = mutableStateOf("")
+    // todo use ""
+    var username = mutableStateOf("testing")
+    var password = mutableStateOf("1234567")
     var state = mutableStateOf(UIState.DEFAULT)
     var errorMessage = mutableStateOf("")
 

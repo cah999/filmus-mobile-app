@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.filmus.domain.UserManager
@@ -47,23 +48,25 @@ class MainActivity : ComponentActivity() {
             }
 
             FilmusTheme {
-                Scaffold(topBar = {
-                    when (currentRoute) {
-                        Screen.Login.route, Screen.Registration.route, Screen.RegistrationPwd.route -> {
-                            TopBar(navController = navController)
-                        }
+                Scaffold(
+                    containerColor = Color(0xFF1D1D1D),
+                    topBar = {
+                        when (currentRoute) {
+                            Screen.Login.route, Screen.Registration.route, Screen.RegistrationPwd.route -> {
+                                TopBar(navController = navController)
+                            }
 
-                        else -> {}
-                    }
-                }, bottomBar = {
-                    when (currentRoute) {
-                        Screen.Main.route, Screen.Favorite.route, Screen.Profile.route -> {
-                            BottomBar(navController = navController)
+                            else -> {}
                         }
+                    }, bottomBar = {
+                        when (currentRoute) {
+                            Screen.Main.route, Screen.Favorite.route, Screen.Profile.route -> {
+                                BottomBar(navController = navController)
+                            }
 
-                        else -> {}
-                    }
-                }) {
+                            else -> {}
+                        }
+                    }) {
                     Box(
                         modifier = Modifier
                             .padding(it)

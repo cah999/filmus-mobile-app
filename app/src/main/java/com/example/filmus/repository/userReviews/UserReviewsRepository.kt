@@ -19,4 +19,10 @@ class UserReviewsRepository(private val userReviewDao: UserReviewDao) {
     ) {
         userReviewDao.insertUserReview(UserReviewEntity(review, userID))
     }
+
+    suspend fun removeReview(
+        review: String
+    ) {
+        userReviewDao.deleteUserReview(review)
+    }
 }

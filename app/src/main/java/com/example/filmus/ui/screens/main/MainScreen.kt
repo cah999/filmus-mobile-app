@@ -1,5 +1,6 @@
 package com.example.filmus.ui.screens.main
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -51,11 +52,12 @@ fun MainScreen(navController: NavHostController, userManager: UserManager) {
     val screenState by viewModel.screenState
     val listState = rememberLazyListState()
     val movies = viewModel.movies
-    LaunchedEffect(Unit) {
-        viewModel.getProfileReviews()
-    }
     val userReviews = viewModel.userReviews
     val pagerState = rememberPagerState { min(4, movies.size) }
+    LaunchedEffect(Unit) {
+        viewModel.updateMovies()
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize(),
@@ -69,7 +71,7 @@ fun MainScreen(navController: NavHostController, userManager: UserManager) {
                 }
             }
 
-            if (movies.isNotEmpty()) {
+            if (movies.isNotEmpty() && screenState != UIState.LOADING) {
                 Carousel(
                     movies = movies.subList(0, min(4, movies.size)),
                     pagerState = pagerState,
@@ -98,7 +100,7 @@ fun MainScreen(navController: NavHostController, userManager: UserManager) {
         }
 
         val remainingMovies = movies.subList(min(4, movies.size), movies.size)
-        if (remainingMovies.isEmpty()) {
+        if (remainingMovies.isEmpty() && screenState != UIState.LOADING) {
             items(3) {
                 Row(
                     Modifier.padding(start = 16.dp, bottom = 12.dp, top = 15.dp, end = 16.dp),
@@ -121,7 +123,16 @@ fun MainScreen(navController: NavHostController, userManager: UserManager) {
                 }
             }
         } else {
+            Log.d("MainScreen", "LazyColumn: $remainingMovies")
             items(remainingMovies) { movie ->
+                Log.d(
+                    "MainScreen",
+                    "LazyColumn: ${movie.name} has reviews ${
+                        movie.reviews.find {
+                            userReviews.contains(it.id)
+                        }?.rating
+                    }"
+                )
                 MovieCard(
                     moviePoster = movie.poster,
                     movieName = movie.name,
@@ -129,14 +140,14 @@ fun MainScreen(navController: NavHostController, userManager: UserManager) {
                     movieCountry = movie.country,
                     movieGenres = movie.genres,
                     movieRating = movie.reviews.map { it.rating }.average().toFloat(),
-                    userRating = movie.reviews.find { userReviews.value.contains(it.id) }?.rating,
+                    userRating = movie.reviews.find { userReviews.contains(it.id) }?.rating,
                     onClick = {
                         navController.navigate("${Screen.Movie.route}/${movie.id}")
                     }
                 )
             }
         }
-        if (screenState == UIState.LOADING) {
+        if (screenState == UIState.REFRESHING) {
             item {
                 LinearProgressIndicator(
                     modifier = Modifier
@@ -148,10 +159,32 @@ fun MainScreen(navController: NavHostController, userManager: UserManager) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+        if (screenState == UIState.LOADING) {
+            items(3) {
+                Row(
+                    Modifier.padding(start = 16.dp, bottom = 12.dp, top = 15.dp, end = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Box(
+                        Modifier
+                            .width(95.dp)
+                            .height(130.dp)
+                            .customShimmer(1000)
+                            .background(Color.Gray)
+                    )
+                    Box(
+                        Modifier
+                            .width(223.dp)
+                            .height(130.dp)
+                            .customShimmer(1000)
+                            .background(Color.Gray)
+                    )
+                }
+            }
+        }
+
     }
-    listState.OnBottomReached {
-        viewModel.loadNextPage()
-    }
+    listState.OnBottomReached(onLoadMore = { viewModel.loadNextPage() })
 }
 
 @Composable
