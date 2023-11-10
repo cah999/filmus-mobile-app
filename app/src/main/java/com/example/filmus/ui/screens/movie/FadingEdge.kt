@@ -1,51 +1,90 @@
 package com.example.filmus.ui.screens.movie
 
-import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import kotlin.math.min
+import kotlin.math.abs
 
 // https://medium.com/@helmersebastian/fading-edges-modifier-in-jetpack-compose-af94159fdf1f
-fun Modifier.fadingEdges(
-    scrollState: ScrollState,
-    topEdgeHeight: Dp = 100.dp,
-    bottomEdgeHeight: Dp = 72.dp
-): Modifier = this.then(
-    Modifier
-        // adding layer fixes issue with blending gradient and content
-        .graphicsLayer { alpha = 0.99F }
-        .drawWithContent {
-            drawContent()
+// https://gist.github.com/dovahkiin98/85acb72ab0c4ddfc6b53413c955bcd10
+fun Modifier.verticalFadingEdge(
+    lazyListState: LazyListState,
+    length: Dp,
+    edgeColor: Color? = null,
+) = composed(debugInspectorInfo {
+    name = "length"
+    value = length
+}) {
+    val color = edgeColor ?: MaterialTheme.colorScheme.surface
 
-            val topColors = listOf(Color.Transparent, Color.Black)
-            val topStartY = scrollState.value.toFloat()
-            val topGradientHeight = min(topEdgeHeight.toPx(), topStartY)
-            drawRect(
-                brush = Brush.verticalGradient(
-                    colors = topColors,
-                    startY = topStartY,
-                    endY = topStartY + topGradientHeight
-                ),
-                blendMode = BlendMode.DstIn
-            )
+    drawWithContent {
+        val topFadingEdgeStrength by derivedStateOf {
+            lazyListState.layoutInfo.run {
+                val firstItem = visibleItemsInfo.first()
+                when {
+                    visibleItemsInfo.size in 0..1 -> 0f
+                    firstItem.index > 0 -> 1f // Added
+                    firstItem.offset == viewportStartOffset -> 0f
+                    firstItem.offset < viewportStartOffset -> firstItem.run {
+                        abs(offset) / size.toFloat()
+                    }
 
-            val bottomColors = listOf(Color.Black, Color.Transparent)
-            val bottomEndY = size.height - scrollState.maxValue + scrollState.value
-            val bottomGradientHeight =
-                min(bottomEdgeHeight.toPx(), scrollState.maxValue.toFloat() - scrollState.value)
-            if (bottomGradientHeight != 0f) drawRect(
-                brush = Brush.verticalGradient(
-                    colors = bottomColors,
-                    startY = bottomEndY - bottomGradientHeight,
-                    endY = bottomEndY
-                ),
-                blendMode = BlendMode.DstIn
-            )
+                    else -> 1f
+                }
+            }.coerceAtMost(1f) * length.value * 2f
         }
-)
+        val bottomFadingEdgeStrength by derivedStateOf {
+            lazyListState.layoutInfo.run {
+                val lastItem = visibleItemsInfo.last()
+                when {
+                    visibleItemsInfo.size in 0..1 -> 0f
+                    lastItem.index < totalItemsCount - 1 -> 1f // Added
+                    lastItem.offset + lastItem.size <= viewportEndOffset -> 0f // added the <=
+                    lastItem.offset + lastItem.size > viewportEndOffset -> lastItem.run {
+                        (size - (viewportEndOffset - offset)) / size.toFloat()  // Fixed the percentage computation
+                    }
+
+                    else -> 1f
+                }
+            }.coerceAtMost(1f) * length.value
+        }
+
+        drawContent()
+        drawRect(
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    color,
+                    Color.Transparent,
+                ),
+                startY = 0f,
+                endY = topFadingEdgeStrength,
+            ),
+            size = Size(
+                this.size.width,
+                topFadingEdgeStrength
+            ),
+        )
+
+        drawRect(
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    Color.Transparent,
+                    color,
+                ),
+                startY = size.height - bottomFadingEdgeStrength,
+                endY = size.height,
+            ),
+            topLeft = Offset(x = 0f, y = size.height - bottomFadingEdgeStrength),
+        )
+    }
+}

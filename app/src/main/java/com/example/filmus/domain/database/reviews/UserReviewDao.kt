@@ -12,4 +12,7 @@ interface UserReviewDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUserReview(userReview: UserReviewEntity)
+
+    @Query("DELETE FROM user_reviews WHERE reviewId = :reviewId")
+    suspend fun deleteUserReview(reviewId: String)
 }

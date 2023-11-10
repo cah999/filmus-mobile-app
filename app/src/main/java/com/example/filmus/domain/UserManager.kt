@@ -124,6 +124,11 @@ class UserManager(private val context: Context) {
         userReviewsUserCase.addReview(userID, reviewID)
     }
 
+    suspend fun removeProfileReview(reviewID: String) {
+        val userReviewsUserCase = UserReviewsUseCase(UserReviewsRepository(userReviewDao))
+        userReviewsUserCase.removeReview(reviewID)
+    }
+
     suspend fun cacheProfile(profile: ProfileResponse) {
         val token = getToken()
         if (token != null) {

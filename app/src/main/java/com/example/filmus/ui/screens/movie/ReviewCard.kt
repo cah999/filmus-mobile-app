@@ -50,11 +50,17 @@ import com.example.filmus.ui.marks.ReviewMark
 import java.text.SimpleDateFormat
 
 @Composable
-fun ReviewCard(review: ReviewResponse, isUser: Boolean, onEdit: () -> Unit, onDelete: () -> Unit) {
+fun ReviewCard(
+    review: ReviewResponse,
+    isUser: Boolean,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val imagePainter = rememberAsyncImagePainter(model = review.author?.avatar ?: "")
-    Column {
+    Column(modifier = modifier.fillMaxWidth()) {
         Row(
-            Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
                 painter = if (review.isAnonymous) painterResource(id = R.drawable.anonymous) else imagePainter,
@@ -106,7 +112,8 @@ fun ReviewCard(review: ReviewResponse, isUser: Boolean, onEdit: () -> Unit, onDe
                             modifier = Modifier
                                 .width(20.dp)
                                 .height(20.dp)
-                                .graphicsLayer { rotationZ = 90f })
+                                .graphicsLayer { rotationZ = 90f },
+                            tint = Color(0xFFFFFFFF))
                     }
 
                     DropdownMenuNoPadding(

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.filmus.api.DetailedMovieResponse
 import com.example.filmus.api.ReviewRequest
 import com.example.filmus.api.createApiService
+import com.example.filmus.domain.UIState
 import com.example.filmus.domain.UserManager
 import com.example.filmus.domain.favorite.FavoritesUseCase
 import com.example.filmus.domain.main.Movie
@@ -25,18 +26,28 @@ class MovieViewModel(movieId: String, private val userManager: UserManager) : Vi
     var isAnonymous = mutableStateOf(false)
     var userReviews = mutableListOf("")
     var existsReviewID = mutableStateOf(null as String?)
+    var screenState = mutableStateOf(UIState.LOADING)
+    var initialItemPosition = mutableIntStateOf(0)
 
     init {
-        getIsFavorite()
+        screenState.value = UIState.LOADING
+        getMovieDetails()
         getUserReviews()
+        getIsFavorite()
+        screenState.value = UIState.DEFAULT
     }
 
-    suspend fun getMovieDetails() {
-        val apiService = createApiService()
-        val movieRepository = MovieRepository(apiService, userManager = userManager)
-        val movieUseCase = MovieUseCase(movieRepository)
-        val result = movieUseCase.getMovieDetails(movieId)
-        if (result != null) movieDetails.value = result
+    private fun getMovieDetails() {
+        viewModelScope.launch {
+            val apiService = createApiService()
+            val movieRepository = MovieRepository(apiService, userManager = userManager)
+            val movieUseCase = MovieUseCase(movieRepository)
+            val result = movieUseCase.getMovieDetails(movieId)
+            if (result != null) {
+                getUserReviews()
+                movieDetails.value = result
+            }
+        }
     }
 
 
@@ -60,10 +71,19 @@ class MovieViewModel(movieId: String, private val userManager: UserManager) : Vi
 
     private fun getUserReviews() {
         viewModelScope.launch {
-            userManager.getProfileReviews().let {
-                userReviews.addAll(it)
+            userManager.getProfileReviews().let { reviewID ->
+                userReviews.addAll(reviewID)
             }
+            existsReviewID.value =
+                movieDetails.value?.reviews?.find { it?.id in userReviews }?.id
         }
+    }
+
+    private fun removeUserReview() {
+        viewModelScope.launch {
+            userManager.removeProfileReview(reviewID.value)
+        }
+        userReviews.remove(reviewID.value)
     }
 
     fun addFavorite(movieID: String) {
@@ -88,44 +108,67 @@ class MovieViewModel(movieId: String, private val userManager: UserManager) : Vi
         }
     }
 
-    fun addReview() {
+    fun addReview(initialPosition: Int) {
+        screenState.value = UIState.LOADING
         viewModelScope.launch {
-            val apiService = createApiService(userManager.getToken())
-            val movieRepository = MovieRepository(apiService, userManager = userManager)
-            val movieUseCase = MovieUseCase(movieRepository)
-            movieUseCase.addReview(
-                movieId, ReviewRequest(
-                    reviewText = review.value,
-                    rating = rating.value,
-                    isAnonymous = isAnonymous.value
+            try {
+                val apiService = createApiService(userManager.getToken())
+                val movieRepository = MovieRepository(apiService, userManager = userManager)
+                val movieUseCase = MovieUseCase(movieRepository)
+                movieUseCase.addReview(
+                    movieId, ReviewRequest(
+                        reviewText = review.value,
+                        rating = rating.intValue,
+                        isAnonymous = isAnonymous.value
+                    )
                 )
-            )
+                getMovieDetails()
+            } finally {
+                initialItemPosition.intValue = initialPosition
+                screenState.value = UIState.DEFAULT
+
+            }
         }
     }
 
-    fun editReview() {
+    fun editReview(initialPosition: Int) {
+        screenState.value = UIState.LOADING
         viewModelScope.launch {
-            val apiService = createApiService(userManager.getToken())
-            val movieRepository = MovieRepository(apiService, userManager = userManager)
-            val movieUseCase = MovieUseCase(movieRepository)
-            movieUseCase.editReview(
-                movieId, reviewID.value, ReviewRequest(
-                    reviewText = review.value,
-                    rating = rating.value,
-                    isAnonymous = isAnonymous.value
+            try {
+                val apiService = createApiService(userManager.getToken())
+                val movieRepository = MovieRepository(apiService, userManager = userManager)
+                val movieUseCase = MovieUseCase(movieRepository)
+                movieUseCase.editReview(
+                    movieId, reviewID.value, ReviewRequest(
+                        reviewText = review.value,
+                        rating = rating.intValue,
+                        isAnonymous = isAnonymous.value
+                    )
                 )
-            )
+                getMovieDetails()
+            } finally {
+                initialItemPosition.intValue = initialPosition
+                screenState.value = UIState.DEFAULT
+
+            }
         }
     }
 
-    fun removeReview(reviewID: String) {
+    fun removeReview(reviewID: String, initialPosition: Int) {
+        screenState.value = UIState.LOADING
         viewModelScope.launch {
-            val apiService = createApiService(userManager.getToken())
-            val movieRepository = MovieRepository(apiService, userManager = userManager)
-            val movieUseCase = MovieUseCase(movieRepository)
-            movieUseCase.removeReview(movieId, reviewID)
+            try {
+                val apiService = createApiService(userManager.getToken())
+                val movieRepository = MovieRepository(apiService, userManager = userManager)
+                val movieUseCase = MovieUseCase(movieRepository)
+                movieUseCase.removeReview(movieId, reviewID)
+                removeUserReview()
+                getMovieDetails()
+            } finally {
+                initialItemPosition.intValue = initialPosition
+                screenState.value = UIState.DEFAULT
+
+            }
         }
     }
-
-
 }

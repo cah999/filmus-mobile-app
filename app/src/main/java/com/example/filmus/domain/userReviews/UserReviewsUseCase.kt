@@ -10,4 +10,8 @@ class UserReviewsUseCase(private val userReviewsRepository: UserReviewsRepositor
     suspend fun addReview(userID: String, review: String) {
         userReviewsRepository.addReview(userID = userID, review = review)
     }
+
+    suspend fun removeReview(review: String) {
+        userReviewsRepository.removeReview(review = review)
+    }
 }
