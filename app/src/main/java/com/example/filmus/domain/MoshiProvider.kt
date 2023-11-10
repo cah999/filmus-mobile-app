@@ -4,6 +4,7 @@ import com.example.filmus.api.LoginRequest
 import com.example.filmus.api.ProfileResponse
 import com.example.filmus.api.RegistrationRequest
 import com.example.filmus.api.ReviewRequest
+import com.example.filmus.domain.registration.register.RegistrationErrorDetails
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -16,6 +17,8 @@ object MoshiProvider {
     val loginRequestAdapter: JsonAdapter<LoginRequest> = moshi.adapter(LoginRequest::class.java)
     val registerRequestAdapter: JsonAdapter<RegistrationRequest> =
         moshi.adapter(RegistrationRequest::class.java)
+    val registrationErrorAdapter: JsonAdapter<RegistrationErrorDetails> =
+        moshi.adapter(RegistrationErrorDetails::class.java)
     val profileRequestAdapter: JsonAdapter<ProfileResponse> =
         moshi.adapter(ProfileResponse::class.java)
     val reviewRequestAdapter: JsonAdapter<ReviewRequest> =

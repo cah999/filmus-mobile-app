@@ -28,12 +28,23 @@ class RegistrationRepository(
 
                 }
             }
+            val errorDetails = response.errorBody()?.let { errorBody ->
+                try {
+                    MoshiProvider.registrationErrorAdapter.fromJson(errorBody.string())
+                } catch (e: Exception) {
+                    null
+                }
+            }
+
             return RegistrationResult.Error(
                 "Registration failed",
-                response.errorBody()?.string() ?: ""
+                errorDetails
             )
         } catch (e: Exception) {
-            return RegistrationResult.Error("Error: ${e.message}", "")
+            return RegistrationResult.Error(
+                "Error: ${e.message}",
+                null
+            )
         }
     }
 }

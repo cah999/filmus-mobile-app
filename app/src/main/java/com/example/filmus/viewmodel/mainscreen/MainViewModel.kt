@@ -20,7 +20,7 @@ class MainViewModel(private val userManager: UserManager) : ViewModel() {
     val userReviews = mutableListOf<String>()
 
     init {
-//        getMovies(1)
+        updateMovies()
         getProfileReviews()
     }
 
@@ -31,7 +31,6 @@ class MainViewModel(private val userManager: UserManager) : ViewModel() {
                 val mainRepository = MainRepository(apiService)
                 val mainUseCase = MainUseCase(mainRepository)
                 val result = mainUseCase.getMovies(page)
-                Log.d("MainViewModel", "getMovies: $result")
                 movies.addAll(result)
             } finally {
                 screenState.value = UIState.DEFAULT
@@ -44,21 +43,18 @@ class MainViewModel(private val userManager: UserManager) : ViewModel() {
         if (currentPage > 10) {
             currentPage = 10
         }
-        Log.d("MainViewModel", "loadNextPage: $currentPage")
         screenState.value = UIState.REFRESHING
         viewModelScope.launch {
             getMovies(currentPage)
         }
     }
 
-    fun getProfileReviews() {
+    private fun getProfileReviews() {
         screenState.value = UIState.LOADING
-        Log.d("GetProfileReviews", "getProfileReviews state: $screenState")
         viewModelScope.launch {
             try {
                 userReviews.clear()
                 userManager.getProfileReviews().let { reviews ->
-                    Log.d("FavoritesViewModel", "getProfileReviews: $reviews")
                     userReviews.addAll(reviews)
                 }
             } finally {
@@ -72,17 +68,17 @@ class MainViewModel(private val userManager: UserManager) : ViewModel() {
         screenState.value = UIState.LOADING
         viewModelScope.launch {
             try {
+                movies.clear()
                 val apiService = createApiService()
                 val mainRepository = MainRepository(apiService)
                 val mainUseCase = MainUseCase(mainRepository)
                 val result = mainUseCase.getMovies(currentPage)
-                movies.clear()
+                Log.d("MainViewModel", "getMovies: $result")
                 movies.addAll(result)
             } finally {
                 screenState.value = UIState.DEFAULT
             }
-            getProfileReviews() // Обновление отзывов пользователя после обновления фильмов
+            getProfileReviews()
         }
     }
-
 }

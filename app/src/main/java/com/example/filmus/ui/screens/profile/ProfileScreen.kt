@@ -1,9 +1,11 @@
 package com.example.filmus.ui.screens.profile
 
+import android.content.Context
+import android.os.VibrationEffect
+import android.os.VibratorManager
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -42,6 +44,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
@@ -56,12 +59,16 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.ImageLoader
+import coil.annotation.ExperimentalCoilApi
+import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import coil.decode.ImageDecoderDecoder
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import com.example.filmus.R
+import com.example.filmus.common.Constants
 import com.example.filmus.domain.UserManager
 import com.example.filmus.navigation.Screen
 import com.example.filmus.ui.fields.CustomDateField
@@ -70,13 +77,15 @@ import com.example.filmus.ui.fields.GenderSelection
 import com.example.filmus.viewmodel.profile.ProfileViewModel
 import com.example.filmus.viewmodel.profile.ProfileViewModelFactory
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalCoilApi::class)
 @Composable
 fun ProfileScreen(
-    navController: NavController,
-    userManager: UserManager
+    navController: NavController, userManager: UserManager
 ) {
     val viewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(userManager))
+    val vibratorManager =
+        LocalContext.current.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+    val vibrator = vibratorManager.defaultVibrator;
     val nickname by viewModel.nickname
     var email by viewModel.email
     var link by viewModel.avatarLink
@@ -85,25 +94,15 @@ fun ProfileScreen(
     var birthDate by viewModel.birthDate
     var buttonEnabled by remember { mutableStateOf(false) }
     val mContext = LocalContext.current
-    val imageLoader = ImageLoader.Builder(mContext)
-        .components {
-            add(ImageDecoderDecoder.Factory())
-        }
-        .memoryCache {
-            MemoryCache.Builder(mContext)
-                .maxSizePercent(0.25)
-                .build()
-        }
-        .diskCache {
-            DiskCache.Builder()
-                .directory(mContext.cacheDir.resolve("image_cache"))
-                .maxSizePercent(0.02)
-                .build()
-        }
-        .build()
-    val image = rememberAsyncImagePainter(
-        model = if (link == "") R.drawable.anonymous else link, imageLoader = imageLoader
-    )
+    val imageLoader = ImageLoader.Builder(mContext).components {
+        add(ImageDecoderDecoder.Factory())
+    }.memoryCache {
+        MemoryCache.Builder(mContext).maxSizePercent(0.25).build()
+    }.diskCache {
+        DiskCache.Builder().directory(mContext.cacheDir.resolve("image_cache")).maxSizePercent(0.02)
+            .build()
+    }.build()
+
     var enlargedImage by remember { mutableStateOf(false) }
     if (viewModel.isLogout.value) {
         navController.navigate(Screen.Welcome.route) {
@@ -113,49 +112,60 @@ fun ProfileScreen(
     LaunchedEffect(Unit) {
         viewModel.getInfo()
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 16.dp, start = 16.dp, end = 16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-
         Box(
-            modifier = Modifier
-                .fillMaxWidth(), contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
-            val longPressDetector = Modifier
-                .combinedClickable(
-                    onLongClick = {
-                        enlargedImage = true
-                    },
-                    onClick = {
-                        enlargedImage = false
+            val longPressDetector = Modifier.combinedClickable(onLongClick = {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        Constants.VIBRATION_BUTTON_CLICK, VibrationEffect.DEFAULT_AMPLITUDE
+                    )
+                )
+                enlargedImage = true
+            }, onClick = {
+                enlargedImage = false
+            })
+            SubcomposeAsyncImage(
+                model = if (!enlargedImage) link else Constants.EMPTY,
+                imageLoader = imageLoader,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(88.dp)
+                    .clip(CircleShape)
+                    .background(Color.Transparent, shape = CircleShape)
+                    .then(longPressDetector),
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.Center
+            ) {
+                val state = painter.state
+                when (state) {
+                    is AsyncImagePainter.State.Success -> {
+                        SubcomposeAsyncImageContent()
                     }
-                )
-            if (image.state is AsyncImagePainter.State.Error) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(88.dp)
-                        .clip(CircleShape)
-                        .background(Color.Transparent, shape = CircleShape)
-                )
-            } else {
-                Image(
-                    painter = image,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(88.dp)
-                        .clip(CircleShape)
-                        .background(Color.Black, shape = CircleShape)
-                        .then(longPressDetector),
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center
-                )
+
+                    is AsyncImagePainter.State.Error -> {
+                        painterResource(id = R.drawable.anonymous)
+                    }
+
+                    is AsyncImagePainter.State.Empty -> {
+                        painterResource(id = R.drawable.anonymous)
+                    }
+
+                    is AsyncImagePainter.State.Loading -> {
+                        CircularProgressIndicator(
+                            color = Color(0xFFFC315E),
+                            trackColor = Color(0x1AFC315E)
+                        )
+                    }
+                }
             }
         }
-
 
 
         Spacer(modifier = Modifier.height(6.dp))
@@ -172,6 +182,11 @@ fun ProfileScreen(
         )
         Button(
             onClick = {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        Constants.VIBRATION_BUTTON_CLICK, VibrationEffect.DEFAULT_AMPLITUDE
+                    )
+                )
                 viewModel.logout()
             },
             modifier = Modifier
@@ -218,7 +233,8 @@ fun ProfileScreen(
             },
             textFieldValue = email,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-            isPassword = false
+            isPassword = false,
+            vibrator = vibrator
         )
         Spacer(modifier = Modifier.height(15.dp))
         Text(
@@ -239,7 +255,8 @@ fun ProfileScreen(
             },
             textFieldValue = link,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-            isPassword = false
+            isPassword = false,
+            vibrator = vibrator
         )
 
         Spacer(modifier = Modifier.height(15.dp))
@@ -261,7 +278,8 @@ fun ProfileScreen(
             },
             textFieldValue = name,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-            isPassword = false
+            isPassword = false,
+            vibrator = vibrator
         )
         Spacer(modifier = Modifier.height(15.dp))
         Text(
@@ -277,10 +295,12 @@ fun ProfileScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Log.d("ProfileScreen", "gender value is $gender")
-        GenderSelection(defaultIsMale = viewModel.gender, onGenderSelected = { selectedGender ->
-            gender = selectedGender
-            if (!buttonEnabled) buttonEnabled = true
-        })
+        GenderSelection(
+            defaultIsMale = viewModel.gender, onGenderSelected = { selectedGender ->
+                gender = selectedGender
+                if (!buttonEnabled) buttonEnabled = true
+            }, vibrator = vibrator
+        )
         Spacer(modifier = Modifier.height(15.dp))
 
         Text(
@@ -301,20 +321,24 @@ fun ProfileScreen(
             },
             textFieldValue = birthDate,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+            vibrator = vibrator
         )
         Spacer(modifier = Modifier.height(15.dp))
         Button(
             onClick = {
-                Log.d("ProfileScreen", "ProfileScreen: clicked: $buttonEnabled")
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        Constants.VIBRATION_BUTTON_CLICK, VibrationEffect.DEFAULT_AMPLITUDE
+                    )
+                )
                 viewModel.updateInfo()
+                // todo add error handling
                 Toast.makeText(
-                    mContext,
-                    "Данные успешно обновлены!",
-                    Toast.LENGTH_SHORT
+                    mContext, "Данные успешно обновлены!", Toast.LENGTH_SHORT
                 ).show()
             },
             modifier = Modifier
-                .width(328.dp)
+                .fillMaxWidth()
                 .height(42.dp)
                 .alpha(
                     if (buttonEnabled) 1f else 0.45f
@@ -342,10 +366,15 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.height(15.dp))
         Button(
             onClick = {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        Constants.VIBRATION_BUTTON_CLICK, VibrationEffect.DEFAULT_AMPLITUDE
+                    )
+                )
                 viewModel.getInfo()
             },
             modifier = Modifier
-                .width(328.dp)
+                .fillMaxWidth()
                 .height(42.dp),
             shape = RoundedCornerShape(size = 10.dp),
             colors = ButtonDefaults.buttonColors(
@@ -378,8 +407,8 @@ fun ProfileScreen(
             contentAlignment = Alignment.Center
         ) {
             Scrim({ enlargedImage = false }, Modifier.fillMaxSize())
-            Image(
-                painter = image,
+            AsyncImage(
+                model = link, imageLoader = imageLoader,
                 contentDescription = null,
                 modifier = Modifier
                     .size(300.dp)
@@ -414,6 +443,5 @@ private fun Scrim(onClose: () -> Unit, modifier: Modifier = Modifier) {
                     false
                 }
             }
-            .background(Color.DarkGray.copy(alpha = 0.75f))
-    )
+            .background(Color.DarkGray.copy(alpha = 0.75f)))
 }

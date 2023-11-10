@@ -22,7 +22,7 @@ import com.example.filmus.ui.screens.main.customShimmer
 fun MovieDetailsPlaceholder() {
     Box(
         modifier = Modifier
-            .width(360.dp)
+            .fillMaxWidth()
             .height(497.dp)
             .customShimmer(1000)
             .background(Color.Gray),
@@ -30,40 +30,58 @@ fun MovieDetailsPlaceholder() {
     Spacer(modifier = Modifier.height(16.dp))
     Column(Modifier.padding(16.dp)) {
         Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(32.dp),
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
                     .width(51.dp)
-                    .height(26.dp)
+                    .height(29.dp)
                     .customShimmer(1000)
                     .background(Color.Gray),
             )
             Box(
                 modifier = Modifier
-                    .width(212.dp)
+                    .weight(1f)
+                    .height(29.dp)
                     .customShimmer(1000)
-                    .background(Color.Gray),
+                    .background(Color.Gray)
+
             )
             Box(
                 modifier = Modifier
-                    .background(Color(0xFF404040), shape = CircleShape)
                     .width(40.dp)
                     .height(40.dp)
                     .customShimmer(1000)
-                    .background(Color.Gray),
+                    .background(Color.Gray, shape = CircleShape)
             )
 
         }
         Spacer(modifier = Modifier.height(20.dp))
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .customShimmer(1000)
-                .background(Color.Gray),
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(20.dp)
+                    .customShimmer(1000)
+                    .background(Color.Gray)
+            )
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(20.dp)
+                    .customShimmer(1000)
+                    .background(Color.Gray)
+            )
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(20.dp)
+                    .customShimmer(1000)
+                    .background(Color.Gray)
+            )
+        }
     }
 }

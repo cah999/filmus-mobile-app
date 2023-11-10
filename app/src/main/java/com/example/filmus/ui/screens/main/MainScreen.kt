@@ -55,9 +55,15 @@ fun MainScreen(navController: NavHostController, userManager: UserManager) {
     val userReviews = viewModel.userReviews
     val pagerState = rememberPagerState { min(4, movies.size) }
     LaunchedEffect(Unit) {
-        viewModel.updateMovies()
+        val secondScreenResult = navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.getLiveData<Boolean>("newReview")
+            ?.value
+        Log.d("MainScreen", "LaunchedEffect: $secondScreenResult")
+        if ((secondScreenResult != null) && (secondScreenResult == true)) {
+            viewModel.updateMovies()
+        }
     }
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize(),
@@ -184,7 +190,10 @@ fun MainScreen(navController: NavHostController, userManager: UserManager) {
         }
 
     }
-    listState.OnBottomReached(onLoadMore = { viewModel.loadNextPage() })
+    listState.OnBottomReached(onLoadMore = {
+        if (screenState != UIState.LOADING)
+            viewModel.loadNextPage()
+    })
 }
 
 @Composable

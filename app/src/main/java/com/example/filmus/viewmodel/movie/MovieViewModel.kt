@@ -27,7 +27,7 @@ class MovieViewModel(movieId: String, private val userManager: UserManager) : Vi
     var userReviews = mutableListOf("")
     var existsReviewID = mutableStateOf(null as String?)
     var screenState = mutableStateOf(UIState.LOADING)
-    var initialItemPosition = mutableIntStateOf(0)
+    var newReview = mutableStateOf(false)
 
     init {
         screenState.value = UIState.LOADING
@@ -108,7 +108,7 @@ class MovieViewModel(movieId: String, private val userManager: UserManager) : Vi
         }
     }
 
-    fun addReview(initialPosition: Int) {
+    fun addReview() {
         screenState.value = UIState.LOADING
         viewModelScope.launch {
             try {
@@ -124,14 +124,14 @@ class MovieViewModel(movieId: String, private val userManager: UserManager) : Vi
                 )
                 getMovieDetails()
             } finally {
-                initialItemPosition.intValue = initialPosition
+                newReview.value = true
                 screenState.value = UIState.DEFAULT
 
             }
         }
     }
 
-    fun editReview(initialPosition: Int) {
+    fun editReview() {
         screenState.value = UIState.LOADING
         viewModelScope.launch {
             try {
@@ -147,14 +147,14 @@ class MovieViewModel(movieId: String, private val userManager: UserManager) : Vi
                 )
                 getMovieDetails()
             } finally {
-                initialItemPosition.intValue = initialPosition
+                newReview.value = true
                 screenState.value = UIState.DEFAULT
 
             }
         }
     }
 
-    fun removeReview(reviewID: String, initialPosition: Int) {
+    fun removeReview(reviewID: String) {
         screenState.value = UIState.LOADING
         viewModelScope.launch {
             try {
@@ -165,9 +165,8 @@ class MovieViewModel(movieId: String, private val userManager: UserManager) : Vi
                 removeUserReview()
                 getMovieDetails()
             } finally {
-                initialItemPosition.intValue = initialPosition
+                newReview.value = true
                 screenState.value = UIState.DEFAULT
-
             }
         }
     }

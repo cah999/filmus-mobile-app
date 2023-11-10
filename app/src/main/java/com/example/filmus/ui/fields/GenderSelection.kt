@@ -1,12 +1,13 @@
 package com.example.filmus.ui.fields
 
-import android.util.Log
+import android.os.VibrationEffect
+import android.os.Vibrator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,14 +25,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.filmus.R
+import com.example.filmus.common.Constants
 
 @Composable
-fun GenderSelection(defaultIsMale: MutableState<Int>, onGenderSelected: (Int) -> Unit) {
-    Log.d("GenderSelection", "defaultIsMale: ${defaultIsMale.value}")
+fun GenderSelection(
+    defaultIsMale: MutableState<Int>,
+    onGenderSelected: (Int) -> Unit,
+    vibrator: Vibrator
+) {
     Row(
         modifier = Modifier
             .padding(0.dp)
-            .width(328.dp)
+            .fillMaxWidth()
             .height(42.dp)
             .background(
                 color = Color(0x1F767680), shape = RoundedCornerShape(8.dp)
@@ -41,11 +46,17 @@ fun GenderSelection(defaultIsMale: MutableState<Int>, onGenderSelected: (Int) ->
     ) {
         Button(
             onClick = {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        Constants.VIBRATION_TYPING,
+                        VibrationEffect.DEFAULT_AMPLITUDE
+                    )
+                )
                 defaultIsMale.value = 1
                 onGenderSelected(1)
             },
             modifier = Modifier
-                .width(163.dp)
+                .weight(1f)
                 .height(38.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = if (defaultIsMale.value == 1) Color.White else Color.Transparent,
@@ -67,11 +78,17 @@ fun GenderSelection(defaultIsMale: MutableState<Int>, onGenderSelected: (Int) ->
 
         Button(
             onClick = {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        Constants.VIBRATION_TYPING,
+                        VibrationEffect.DEFAULT_AMPLITUDE
+                    )
+                )
                 defaultIsMale.value = 0
                 onGenderSelected(0)
             },
             modifier = Modifier
-                .width(163.dp)
+                .weight(1f)
                 .height(38.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = if (defaultIsMale.value == 0) Color.White else Color.Transparent,

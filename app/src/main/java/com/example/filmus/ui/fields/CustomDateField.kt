@@ -1,5 +1,7 @@
 package com.example.filmus.ui.fields
 
+import android.os.VibrationEffect
+import android.os.Vibrator
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -53,6 +55,7 @@ fun CustomDateField(
     containerColor: Color = Color.Transparent,
     onValueChange: (String) -> Unit,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    vibrator: Vibrator
 ) {
     var isDatePickerVisible by remember { mutableStateOf(false) }
     BasicTextField(modifier = Modifier
@@ -65,7 +68,12 @@ fun CustomDateField(
         .fillMaxWidth(),
         value = textFieldValue,
         onValueChange = {
-            if (it.length <= 8 && it.isDigitsOnly()) onValueChange(it)
+            if (it.length <= 8 && it.isDigitsOnly()) {
+                vibrator.vibrate(
+                    VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+                )
+                onValueChange(it)
+            }
         },
         textStyle = TextStyle(
             fontSize = 15.sp,
@@ -88,7 +96,14 @@ fun CustomDateField(
             ) {
                 innerTextField()
                 IconButton(
-                    onClick = { isDatePickerVisible = !isDatePickerVisible },
+                    onClick = {
+                        vibrator.vibrate(
+                            VibrationEffect.createPredefined(
+                                VibrationEffect.EFFECT_CLICK
+                            )
+                        )
+                        isDatePickerVisible = !isDatePickerVisible
+                    },
                     modifier = Modifier
                         .padding(1.dp)
                         .width(20.dp)
@@ -116,7 +131,7 @@ fun CustomDateField(
                 selectedDate = selectedDate.value,
             ) { newDate ->
                 selectedDate.value = newDate
-                onValueChange(newDate.format(DateTimeFormatter.ofPattern("ddMM[uuuu]"))).toString()
+                onValueChange(newDate.format(DateTimeFormatter.ofPattern("ddMMyyyy"))).toString()
             },
         )
     }

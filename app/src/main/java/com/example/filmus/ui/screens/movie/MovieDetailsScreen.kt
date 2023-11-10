@@ -80,12 +80,11 @@ fun MovieDetailsScreen(
     var isFavorite by viewModel.isFavorite
 
     val lazyState = rememberLazyListState()
-//    LaunchedEffect(viewModel.initialItemPosition.intValue) {
-//        if (viewModel.initialItemPosition.intValue > 0) {
-//            lazyState.animateScrollToItem(viewModel.initialItemPosition.intValue)
-//            viewModel.initialItemPosition.intValue = 0
-//        }
-//    }
+    val newReview by viewModel.newReview
+    navController.previousBackStackEntry?.savedStateHandle?.set(
+        "newReview",
+        newReview
+    )
     val fadingEdgeModifier = Modifier.verticalFadingEdge(
         lazyState, length = 200.dp, edgeColor = Color(0xFF1D1D1D)
     )
@@ -102,16 +101,23 @@ fun MovieDetailsScreen(
     }
     val imagePoster = rememberAsyncImagePainter(model = movie?.poster ?: "")
     Scaffold(containerColor = Color(0xFF1D1D1D), topBar = {
-        CenterAlignedTopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = Color(0xFF1D1D1D)
-        ), title = {}, navigationIcon = {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.back),
-                    contentDescription = null,
-                )
-            }
-        }, actions = {})
+        CenterAlignedTopAppBar(
+            colors = TopAppBarDefaults.mediumTopAppBarColors(
+                containerColor = Color(0xFF1D1D1D)
+            ),
+            title = {},
+            navigationIcon = {
+                IconButton(onClick = {
+                    navController.popBackStack()
+                }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.back),
+                        contentDescription = null,
+                    )
+                }
+            },
+            actions = {}
+        )
     }) { it ->
         LazyColumn(
             modifier = Modifier
@@ -136,7 +142,7 @@ fun MovieDetailsScreen(
                                     colors = listOf(
                                         Color.Transparent, Color(0xFF1D1D1D)
                                     ),
-                                    startY = size.height / 3, // Начните градиент ближе к нижней части изображения
+                                    startY = size.height / 3,
                                     endY = size.height
                                 )
                                 drawContent()
@@ -413,7 +419,6 @@ fun MovieDetailsScreen(
                                     onDelete = {
                                         viewModel.removeReview(
                                             review.id,
-                                            lazyState.firstVisibleItemIndex
                                         )
                                     },
                                     modifier = Modifier.padding(start = 16.dp, end = 16.dp)
@@ -441,7 +446,6 @@ fun MovieDetailsScreen(
                                 onDelete = {
                                     viewModel.removeReview(
                                         review.id,
-                                        lazyState.firstVisibleItemIndex
                                     )
                                 },
                                 modifier = Modifier.padding(start = 16.dp, end = 16.dp)
@@ -526,9 +530,7 @@ fun MovieDetailsScreen(
     if (showDialog) {
         ReviewDialog(onDismissRequest = { showDialog = false },
             onClick = {
-                if (existsReviewID != null) viewModel.editReview(lazyState.firstVisibleItemIndex) else viewModel.addReview(
-                    lazyState.firstVisibleItemIndex
-                )
+                if (existsReviewID != null) viewModel.editReview() else viewModel.addReview()
             },
             rating = viewModel.rating.intValue,
             onRatingChanged = { viewModel.rating.intValue = it },

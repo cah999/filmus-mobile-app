@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.filmus.api.RegistrationRequest
 import com.example.filmus.api.createApiService
+import com.example.filmus.domain.UIState
 import com.example.filmus.domain.UserManager
 import com.example.filmus.domain.registration.register.RegistrationData
 import com.example.filmus.domain.registration.register.RegistrationResult
@@ -36,6 +37,7 @@ class RegistrationViewModel(
     var password = mutableStateOf("")
     var passwordRepeat = mutableStateOf("")
     val validationStates = mutableStateOf(emptyList<FieldValidationState>())
+    var screenState = mutableStateOf(UIState.DEFAULT)
     private val validateUseCase = ValidateRegistrationDataUseCase()
     fun getOutlineColor(state: FieldValidationState?): Int {
         return if (state?.isValid == false) {
