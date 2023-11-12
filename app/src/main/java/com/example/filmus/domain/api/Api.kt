@@ -4,8 +4,8 @@ package com.example.filmus.domain.api
 import android.annotation.SuppressLint
 import android.util.Base64
 import android.util.Log
-import com.example.filmus.ui.screens.movie.Duration
-import com.example.filmus.ui.screens.movie.ExMovie
+import com.example.filmus.ui.screens.movie.utils.Duration
+import com.example.filmus.ui.screens.movie.utils.ExMovie
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
@@ -219,10 +219,6 @@ class Api {
                 }
             })
         }
-
-    suspend fun watching(page: Int = 1): MoviesList {
-        return search(filter = "watching", page = page)
-    }
 
     suspend fun getMovie(path: String): ExMovie? = suspendCoroutine { continuation ->
         val path = path.substringAfter(getScheme() + "://").substringAfter(getHost() + "/", "")

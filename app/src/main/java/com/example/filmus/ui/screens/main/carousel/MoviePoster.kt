@@ -3,8 +3,8 @@ package com.example.filmus.ui.screens.main.carousel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -18,7 +18,7 @@ import com.example.filmus.domain.main.Movie
 fun MoviePoster(movie: Movie, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .width(360.dp)
+            .fillMaxWidth()
             .height(497.dp)
             .clickable { onClick() }
     ) {

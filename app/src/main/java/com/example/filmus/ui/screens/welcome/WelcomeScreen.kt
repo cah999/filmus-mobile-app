@@ -28,14 +28,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.filmus.R
 import com.example.filmus.common.Constants
-import com.example.filmus.navigation.Screen
+import com.example.filmus.ui.navigation.Screen
 
 
 @Composable
 fun WelcomeScreen(navController: NavHostController) {
     val vibratorManager =
         LocalContext.current.getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager
-    val vibrator = vibratorManager.defaultVibrator;
+    val vibrator = vibratorManager.defaultVibrator
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -146,3 +147,4 @@ fun WelcomeScreen(navController: NavHostController) {
         }
     }
 }
+

@@ -43,8 +43,8 @@ import com.example.filmus.R
 import com.example.filmus.common.Constants
 import com.example.filmus.domain.UIState
 import com.example.filmus.domain.registration.register.RegistrationResult
-import com.example.filmus.navigation.Screen
 import com.example.filmus.ui.fields.CustomTextField
+import com.example.filmus.ui.navigation.Screen
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
 
 @Composable
@@ -53,7 +53,7 @@ fun RegistrationPwdScreen(
 ) {
     val vibratorManager =
         LocalContext.current.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-    val vibrator = vibratorManager.defaultVibrator;
+    val vibrator = vibratorManager.defaultVibrator
     var password by viewModel.password
     var passwordRepeat by viewModel.passwordRepeat
     val buttonEnabled =

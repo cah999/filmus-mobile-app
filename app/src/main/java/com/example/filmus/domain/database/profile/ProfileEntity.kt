@@ -8,7 +8,7 @@ data class ProfileEntity(
     @PrimaryKey val id: String,
     val nickname: String,
     val email: String,
-    val avatarLink: String,
+    val avatarLink: String?,
     val name: String,
     val gender: Int,
     val birthDate: String

@@ -1,21 +1,18 @@
 package com.example.filmus.domain.profile
 
-import com.example.filmus.api.ProfileResponse
-import com.example.filmus.api.ProfileResult
-import com.example.filmus.api.ProfileUpdateResult
-import com.example.filmus.repository.profile.ProfileRepository
+import com.example.filmus.domain.api.ApiResult
+import com.example.filmus.repository.profile.ApiProfileRepository
 
-class ProfileUseCase(private val profileRepository: ProfileRepository) {
-    suspend fun getInfo(): ProfileResult {
+class ProfileUseCase(private val profileRepository: ApiProfileRepository) {
+    suspend fun getInfo(): ApiResult<ProfileResponse> {
         return profileRepository.getInfo()
     }
 
-    suspend fun logout() {
-        profileRepository.logout()
+    suspend fun logout(): ApiResult<Nothing> {
+        return profileRepository.logout()
     }
 
-    suspend fun updateInfo(data: ProfileResponse): ProfileUpdateResult {
+    suspend fun updateInfo(data: ProfileResponse): ApiResult<Nothing> {
         return profileRepository.updateInfo(data)
     }
-
 }

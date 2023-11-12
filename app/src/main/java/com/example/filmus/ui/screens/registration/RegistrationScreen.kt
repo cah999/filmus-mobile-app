@@ -37,10 +37,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.filmus.R
 import com.example.filmus.common.Constants
-import com.example.filmus.navigation.Screen
 import com.example.filmus.ui.fields.CustomDateField
 import com.example.filmus.ui.fields.CustomTextField
 import com.example.filmus.ui.fields.GenderSelection
+import com.example.filmus.ui.navigation.Screen
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
 
 
@@ -50,7 +50,7 @@ fun RegistrationScreen(
 ) {
     val vibratorManager =
         LocalContext.current.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-    val vibrator = vibratorManager.defaultVibrator;
+    val vibrator = vibratorManager.defaultVibrator
     var name by viewModel.name
     var login by viewModel.login
     var email by viewModel.email

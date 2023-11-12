@@ -39,25 +39,25 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.filmus.R
 import com.example.filmus.common.Constants
+import com.example.filmus.domain.TokenManager
 import com.example.filmus.domain.UIState
-import com.example.filmus.domain.UserManager
-import com.example.filmus.domain.login.LoginResult
-import com.example.filmus.navigation.Screen
+import com.example.filmus.domain.api.ApiResult
 import com.example.filmus.ui.fields.CustomTextField
+import com.example.filmus.ui.navigation.Screen
 import com.example.filmus.viewmodel.login.LoginViewModel
 import com.example.filmus.viewmodel.login.LoginViewModelFactory
 
 @Composable
 fun LoginScreen(
     navController: NavHostController,
-    userManager: UserManager
+    tokenManager: TokenManager
 ) {
     val viewModel: LoginViewModel = viewModel(
-        factory = LoginViewModelFactory(userManager)
+        factory = LoginViewModelFactory(tokenManager)
     )
     val vibratorManager =
         LocalContext.current.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-    val vibrator = vibratorManager.defaultVibrator;
+    val vibrator = vibratorManager.defaultVibrator
     var username by viewModel.username
     var password by viewModel.password
     var state by viewModel.state
@@ -176,16 +176,22 @@ fun LoginScreen(
                 state = UIState.LOADING
                 viewModel.login(username, password) { result ->
                     when (result) {
-                        is LoginResult.Success -> {
+                        is ApiResult.Success -> {
                             navController.navigate(Screen.Main.route)
                             {
                                 popUpTo(0)
                             }
                         }
 
-                        is LoginResult.Error -> {
+                        is ApiResult.Error -> {
                             state = UIState.ERROR
-                            errorMessage = result.message
+                            errorMessage = result.message.toString()
+
+                        }
+
+                        else -> {
+                            state = UIState.ERROR
+                            errorMessage = Constants.UNKNOWN_ERROR
                         }
                     }
                 }
@@ -250,6 +256,7 @@ fun LoginScreen(
                 },
             )
         }
+
     }
 }
 

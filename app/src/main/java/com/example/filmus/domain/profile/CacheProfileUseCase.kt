@@ -9,7 +9,7 @@ class CacheProfileUseCase(private val profileRepository: CacheProfileRepository)
         return profileRepository.getProfile()
     }
 
-    suspend fun cacheProfile(profile: ProfileEntity) {
+    suspend fun cacheProfile(profile: ProfileResponse) {
         profileRepository.cacheProfile(profile)
     }
 

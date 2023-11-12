@@ -4,5 +4,6 @@ enum class UIState {
     DEFAULT,
     LOADING,
     REFRESHING,
-    ERROR
+    ERROR,
+    UNAUTHORIZED
 }

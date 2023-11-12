@@ -5,15 +5,22 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.filmus.api.RegistrationRequest
-import com.example.filmus.api.createApiService
+import com.example.filmus.domain.TokenManager
 import com.example.filmus.domain.UIState
-import com.example.filmus.domain.UserManager
-import com.example.filmus.domain.registration.register.RegistrationData
+import com.example.filmus.domain.api.ApiResult
+import com.example.filmus.domain.api.createApiService
+import com.example.filmus.domain.database.profile.ProfileDatabase
+import com.example.filmus.domain.profile.CacheProfileUseCase
+import com.example.filmus.domain.profile.ProfileResponse
+import com.example.filmus.domain.profile.ProfileUseCase
+import com.example.filmus.domain.registration.register.RegistrationRequest
 import com.example.filmus.domain.registration.register.RegistrationResult
 import com.example.filmus.domain.registration.register.RegistrationUseCase
 import com.example.filmus.domain.registration.validation.FieldValidationState
 import com.example.filmus.domain.registration.validation.ValidateRegistrationDataUseCase
+import com.example.filmus.domain.registration.validation.ValidationData
+import com.example.filmus.repository.profile.ApiProfileRepository
+import com.example.filmus.repository.profile.CacheProfileRepository
 import com.example.filmus.repository.registration.RegistrationRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,7 +31,7 @@ import java.util.Locale
 
 
 class RegistrationViewModel(
-    private val userManager: UserManager
+    private val tokenManager: TokenManager
 ) :
     ViewModel() {
 
@@ -62,7 +69,7 @@ class RegistrationViewModel(
     }
 
     fun validateRegistrationData() {
-        val data = RegistrationData(
+        val data = ValidationData(
             name = name.value, login = login.value, email = email.value, birthDate = birthDate.value
         )
 
@@ -80,11 +87,11 @@ class RegistrationViewModel(
     }
 
     fun register(onResult: (RegistrationResult) -> Unit) {
-        viewModelScope.launch() {
-            Log.d("RegistrationViewModel", "register: birthDate: ${birthDate}")
-            Log.d("RegistrationViewModel", "register: email: ${email}")
+        viewModelScope.launch {
+            Log.d("RegistrationViewModel", "register: birthDate: $birthDate")
+            Log.d("RegistrationViewModel", "register: email: $email")
             val apiService = createApiService()
-            val registrationRepository = RegistrationRepository(apiService, userManager)
+            val registrationRepository = RegistrationRepository(apiService)
             val registrationUseCase = RegistrationUseCase(registrationRepository)
             val result = registrationUseCase.register(
                 RegistrationRequest(
@@ -93,15 +100,47 @@ class RegistrationViewModel(
                     password = password.value,
                     email = email.value,
                     birthDate = formatDateToISO8601(birthDate.value),
-                    gender = gender.value
+                    gender = gender.intValue
                 )
             )
             if (result is RegistrationResult.Success) {
-                userManager.checkToken()
+                getProfile()
+                tokenManager.saveToken(result.token)
             }
             withContext(Dispatchers.Main) {
                 onResult(result)
             }
         }
+    }
+
+    private suspend fun getProfile() {
+        val apiService = createApiService(tokenManager.getToken())
+        val profileRepository = ApiProfileRepository(apiService)
+        val profileUseCase = ProfileUseCase(profileRepository)
+
+        when (val result = profileUseCase.getInfo()) {
+            is ApiResult.Success -> {
+                if (result.data != null) {
+                    cacheProfile(result.data)
+                }
+            }
+
+            is ApiResult.Unauthorized -> {
+                Log.d("ProfileViewModel", "getProfile: unauthorized")
+            }
+
+            is ApiResult.Error -> {
+                Log.d("ProfileViewModel", "getProfile: error")
+            }
+        }
+    }
+
+    private suspend fun cacheProfile(profile: ProfileResponse) {
+        val profileDatabase = ProfileDatabase.getDatabase(
+            context = tokenManager.context
+        )
+        val profileDao = profileDatabase.profileDao()
+        val profileUseCase = CacheProfileUseCase(CacheProfileRepository(profileDao))
+        profileUseCase.cacheProfile(profile)
     }
 }

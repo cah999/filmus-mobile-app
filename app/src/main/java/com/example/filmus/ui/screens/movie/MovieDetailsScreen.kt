@@ -1,5 +1,9 @@
 package com.example.filmus.ui.screens.movie
 
+import android.content.Context
+import android.os.VibrationEffect
+import android.os.VibratorManager
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -50,6 +54,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -62,9 +67,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.filmus.R
+import com.example.filmus.common.Constants
+import com.example.filmus.domain.TokenManager
 import com.example.filmus.domain.UIState
-import com.example.filmus.domain.UserManager
 import com.example.filmus.ui.marks.FilmMark
+import com.example.filmus.ui.navigation.Screen
+import com.example.filmus.ui.screens.movie.utils.InfoRow
+import com.example.filmus.ui.screens.movie.utils.MovieDetailsPlaceholder
+import com.example.filmus.ui.screens.movie.utils.ReviewCard
+import com.example.filmus.ui.screens.movie.utils.ReviewDialog
+import com.example.filmus.ui.screens.movie.utils.verticalFadingEdge
 import com.example.filmus.viewmodel.movie.MovieViewModel
 import com.example.filmus.viewmodel.movie.MovieViewModelFactory
 
@@ -73,17 +85,23 @@ import com.example.filmus.viewmodel.movie.MovieViewModelFactory
 )
 @Composable
 fun MovieDetailsScreen(
-    movieId: String, navController: NavHostController, userManager: UserManager
+    movieId: String, navController: NavHostController, tokenManager: TokenManager
 ) {
-    val viewModel: MovieViewModel = viewModel(factory = MovieViewModelFactory(movieId, userManager))
+    val viewModel: MovieViewModel =
+        viewModel(factory = MovieViewModelFactory(movieId, tokenManager))
     val movie by viewModel.movieDetails
     var isFavorite by viewModel.isFavorite
-
+    val vibratorManager =
+        LocalContext.current.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+    val vibrator = vibratorManager.defaultVibrator
     val lazyState = rememberLazyListState()
     val newReview by viewModel.newReview
+    val newFavorite by viewModel.newFavorite
     navController.previousBackStackEntry?.savedStateHandle?.set(
-        "newReview",
-        newReview
+        "newReview", newReview
+    )
+    navController.previousBackStackEntry?.savedStateHandle?.set(
+        "newFavorite", newFavorite
     )
     val fadingEdgeModifier = Modifier.verticalFadingEdge(
         lazyState, length = 200.dp, edgeColor = Color(0xFF1D1D1D)
@@ -100,24 +118,40 @@ fun MovieDetailsScreen(
         }
     }
     val imagePoster = rememberAsyncImagePainter(model = movie?.poster ?: "")
+    when (viewModel.screenState.value) {
+        UIState.UNAUTHORIZED -> {
+            Toast.makeText(
+                LocalContext.current, Constants.UNAUTHORIZED_ERROR, Toast.LENGTH_SHORT
+            ).show()
+            navController.navigate(Screen.Login.route) {
+                popUpTo(Screen.Main.route) { inclusive = true }
+            }
+        }
+
+        UIState.ERROR -> {
+            Toast.makeText(
+                LocalContext.current, viewModel.errorMessage.value, Toast.LENGTH_SHORT
+            ).show()
+            viewModel.screenState.value = UIState.DEFAULT
+        }
+
+        else -> {}
+
+    }
     Scaffold(containerColor = Color(0xFF1D1D1D), topBar = {
-        CenterAlignedTopAppBar(
-            colors = TopAppBarDefaults.mediumTopAppBarColors(
-                containerColor = Color(0xFF1D1D1D)
-            ),
-            title = {},
-            navigationIcon = {
-                IconButton(onClick = {
-                    navController.popBackStack()
-                }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.back),
-                        contentDescription = null,
-                    )
-                }
-            },
-            actions = {}
-        )
+        CenterAlignedTopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+            containerColor = Color(0xFF1D1D1D),
+            navigationIconContentColor = Color(0xFFFFFFFF),
+        ), title = {}, navigationIcon = {
+            IconButton(onClick = {
+                navController.popBackStack()
+            }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.back),
+                    contentDescription = null,
+                )
+            }
+        }, actions = {})
     }) { it ->
         LazyColumn(
             modifier = Modifier
@@ -141,9 +175,7 @@ fun MovieDetailsScreen(
                                 val gradient = Brush.verticalGradient(
                                     colors = listOf(
                                         Color.Transparent, Color(0xFF1D1D1D)
-                                    ),
-                                    startY = size.height / 3,
-                                    endY = size.height
+                                    ), startY = size.height / 3, endY = size.height
                                 )
                                 drawContent()
                                 drawRect(
@@ -187,6 +219,12 @@ fun MovieDetailsScreen(
                         IconButton(
                             onClick = {
                                 isFavorite = !isFavorite
+                                vibrator.vibrate(
+                                    VibrationEffect.createOneShot(
+                                        Constants.VIBRATION_BUTTON_CLICK,
+                                        VibrationEffect.DEFAULT_AMPLITUDE
+                                    )
+                                )
                                 if (isFavorite) viewModel.addFavorite(movieId)
                                 else viewModel.removeFavorite(movieId)
                             },
@@ -247,7 +285,15 @@ fun MovieDetailsScreen(
 
                     Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .clickable { isExpanded = !isExpanded }
+                            .clickable {
+                                vibrator.vibrate(
+                                    VibrationEffect.createOneShot(
+                                        Constants.VIBRATION_BUTTON_CLICK,
+                                        VibrationEffect.DEFAULT_AMPLITUDE
+                                    )
+                                )
+                                isExpanded = !isExpanded
+                            }
                             .padding(start = 16.dp, end = 16.dp)) {
                         Text(
                             text = "Подробнее", style = TextStyle(
@@ -410,6 +456,12 @@ fun MovieDetailsScreen(
                                     review = review,
                                     isUser = review.id in viewModel.userReviews,
                                     onEdit = {
+                                        vibrator.vibrate(
+                                            VibrationEffect.createOneShot(
+                                                Constants.VIBRATION_BUTTON_CLICK,
+                                                VibrationEffect.DEFAULT_AMPLITUDE
+                                            )
+                                        )
                                         viewModel.review.value = review.reviewText ?: ""
                                         viewModel.rating.intValue = review.rating
                                         viewModel.isAnonymous.value = review.isAnonymous
@@ -417,6 +469,12 @@ fun MovieDetailsScreen(
                                         showDialog = true
                                     },
                                     onDelete = {
+                                        vibrator.vibrate(
+                                            VibrationEffect.createOneShot(
+                                                Constants.VIBRATION_BUTTON_CLICK,
+                                                VibrationEffect.DEFAULT_AMPLITUDE
+                                            )
+                                        )
                                         viewModel.removeReview(
                                             review.id,
                                         )
@@ -479,7 +537,8 @@ fun MovieDetailsScreen(
     if (movie != null && hasScrolledToTitle) {
         Column {
             CenterAlignedTopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
-                containerColor = Color(0xFF1D1D1D)
+                containerColor = Color(0xFF1D1D1D),
+                navigationIconContentColor = Color(0xFFFFFFFF),
             ), title = {
                 (if (movie!!.name == null) "Фильм" else movie!!.name)?.let {
                     Text(
@@ -502,6 +561,12 @@ fun MovieDetailsScreen(
                 Box(Modifier.padding(end = 15.dp), contentAlignment = Alignment.CenterEnd) {
                     IconButton(
                         onClick = {
+                            vibrator.vibrate(
+                                VibrationEffect.createOneShot(
+                                    Constants.VIBRATION_BUTTON_CLICK,
+                                    VibrationEffect.DEFAULT_AMPLITUDE
+                                )
+                            )
                             isFavorite = !isFavorite
                             if (isFavorite) viewModel.addFavorite(movieId)
                             else viewModel.removeFavorite(movieId)

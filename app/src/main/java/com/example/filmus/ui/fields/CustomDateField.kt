@@ -70,7 +70,9 @@ fun CustomDateField(
         onValueChange = {
             if (it.length <= 8 && it.isDigitsOnly()) {
                 vibrator.vibrate(
-                    VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+                    VibrationEffect.createPredefined(
+                        VibrationEffect.EFFECT_CLICK
+                    )
                 )
                 onValueChange(it)
             }

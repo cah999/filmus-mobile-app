@@ -1,33 +1,80 @@
 package com.example.filmus.repository.favorites
 
-import com.example.filmus.api.ApiService
+import com.example.filmus.common.Constants
+import com.example.filmus.domain.api.ApiResult
+import com.example.filmus.domain.api.ApiService
 import com.example.filmus.domain.main.Movie
 
 class FavoritesRepository(
     private val apiService: ApiService
 ) {
-    suspend fun getFavorites(): List<Movie> {
-        val response = apiService.getFavorites()
-        if (response.isSuccessful) {
-            return response.body()?.results ?: emptyList()
+    suspend fun getFavorites(): ApiResult<List<Movie>> {
+        try {
+            val response = apiService.getFavorites()
+            return if (response.isSuccessful) {
+                val movies = response.body()?.results ?: emptyList()
+                ApiResult.Success(movies)
+            } else {
+                val errorBody = response.errorBody()?.string()
+                val message = if (errorBody.isNullOrEmpty()) {
+                    Constants.UNKNOWN_ERROR
+                } else {
+                    errorBody
+                }
+                if (response.code() == 401) {
+                    ApiResult.Unauthorized(message)
+                } else {
+                    ApiResult.Error(message)
+                }
+            }
+        } catch (e: Exception) {
+            return ApiResult.Error(e.message ?: Constants.UNKNOWN_ERROR)
         }
-        return emptyList()
     }
 
-    suspend fun addFavorite(movieID: String) {
-        val response = apiService.addFavorite(movieID)
-        if (response.isSuccessful) {
-            return
+    suspend fun addFavorite(movieID: String): ApiResult<Nothing> {
+        try {
+            val response = apiService.addFavorite(movieID)
+            return if (response.isSuccessful) {
+                ApiResult.Success()
+            } else {
+                val errorBody = response.errorBody()?.string()
+                val message = if (errorBody.isNullOrEmpty()) {
+                    Constants.UNKNOWN_ERROR
+                } else {
+                    errorBody
+                }
+                if (response.code() == 401) {
+                    ApiResult.Unauthorized(message)
+                } else {
+                    ApiResult.Error(message)
+                }
+            }
+        } catch (e: Exception) {
+            return ApiResult.Error(e.message ?: Constants.UNKNOWN_ERROR)
         }
-        throw Exception("Error adding favorite")
     }
 
-
-    suspend fun removeFavorite(movieID: String) {
-        val response = apiService.removeFavorite(movieID)
-        if (response.isSuccessful) {
-            return
+    suspend fun removeFavorite(movieID: String): ApiResult<Nothing> {
+        try {
+            val response = apiService.removeFavorite(movieID)
+            return if (response.isSuccessful) {
+                ApiResult.Success()
+            } else {
+                val errorBody = response.errorBody()?.string()
+                val message = if (errorBody.isNullOrEmpty()) {
+                    Constants.UNKNOWN_ERROR
+                } else {
+                    errorBody
+                }
+                if (response.code() == 401) {
+                    ApiResult.Unauthorized(message)
+                } else {
+                    ApiResult.Error(message)
+                }
+            }
+        } catch (e: Exception) {
+            return ApiResult.Error(e.message ?: Constants.UNKNOWN_ERROR)
         }
-        throw Exception("Error removing favorite")
     }
 }
