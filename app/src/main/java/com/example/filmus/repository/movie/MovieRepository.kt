@@ -9,10 +9,12 @@ import com.example.filmus.domain.movie.ReviewRequest
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 
+
+
 class MovieRepository(
     private val apiService: ApiService
-) {
-    suspend fun getDetailedMovie(id: String): ApiResult<DetailedMovieResponse?> {
+): IMovieRepository {
+    override suspend fun getDetailedMovie(id: String): ApiResult<DetailedMovieResponse?> {
         return try {
             val response = apiService.getDetailedMovie(id)
             if (response.isSuccessful) {
@@ -32,7 +34,7 @@ class MovieRepository(
         }
     }
 
-    suspend fun addReview(movieID: String, request: ReviewRequest): ApiResult<Nothing> {
+    override suspend fun addReview(movieID: String, request: ReviewRequest): ApiResult<Nothing> {
         return try {
             val reviewRequestBody = MoshiProvider.reviewRequestAdapter.toJson(request)
                 .toRequestBody("application/json".toMediaTypeOrNull())
@@ -49,7 +51,7 @@ class MovieRepository(
         }
     }
 
-    suspend fun editReview(
+    override suspend fun editReview(
         movieID: String, reviewID: String, request: ReviewRequest
     ): ApiResult<Nothing> {
         return try {
@@ -78,7 +80,7 @@ class MovieRepository(
         }
     }
 
-    suspend fun removeReview(movieID: String, reviewID: String): ApiResult<Nothing> {
+    override suspend fun removeReview(movieID: String, reviewID: String): ApiResult<Nothing> {
         return try {
             val response = apiService.removeReview(movieID, reviewID)
             if (response.isSuccessful) {

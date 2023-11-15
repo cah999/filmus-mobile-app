@@ -5,10 +5,11 @@ import com.example.filmus.domain.api.ApiResult
 import com.example.filmus.domain.api.ApiService
 import com.example.filmus.domain.main.Movie
 
+
 class MainRepository(
     private val apiService: ApiService
-) {
-    suspend fun getMovies(page: Int): ApiResult<List<Movie>> {
+) : IMainRepository {
+    override suspend fun getMovies(page: Int): ApiResult<List<Movie>> {
         return try {
             val response = apiService.getMovies(page)
             if (response.isSuccessful) {

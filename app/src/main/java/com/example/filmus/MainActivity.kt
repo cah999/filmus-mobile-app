@@ -15,7 +15,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.filmus.domain.network.ConnectionState
 import com.example.filmus.repository.TokenManager
-import com.example.filmus.repository.network.connectivityState
+import com.example.filmus.domain.network.connectivityState
 import com.example.filmus.ui.navigation.AppNavigation
 import com.example.filmus.ui.navigation.BottomBar
 import com.example.filmus.ui.navigation.Screen

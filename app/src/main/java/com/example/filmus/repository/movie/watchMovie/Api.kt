@@ -1,10 +1,16 @@
-package com.example.filmus.domain.movieAPI
+package com.example.filmus.repository.movie.watchMovie
 
 
 import android.annotation.SuppressLint
 import android.util.Base64
 import android.util.Log
 import com.example.filmus.common.Constants
+import com.example.filmus.domain.movieAPI.Episode
+import com.example.filmus.domain.movieAPI.ExMovie
+import com.example.filmus.domain.movieAPI.Season
+import com.example.filmus.domain.movieAPI.Stream
+import com.example.filmus.domain.movieAPI.Subtitle
+import com.example.filmus.domain.movieAPI.Translation
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody

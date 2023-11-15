@@ -5,12 +5,13 @@ import com.example.filmus.domain.database.profile.ProfileEntity
 import com.example.filmus.domain.profile.ProfileResponse
 import kotlinx.coroutines.flow.Flow
 
-class CacheProfileRepository(private val profileDao: ProfileDao) {
-    fun getProfile(): Flow<ProfileEntity?> {
+
+class CacheProfileRepository(private val profileDao: ProfileDao) : ICacheProfileRepository {
+    override fun getProfile(): Flow<ProfileEntity?> {
         return profileDao.getProfile()
     }
 
-    suspend fun cacheProfile(profile: ProfileResponse) {
+    override suspend fun cacheProfile(profile: ProfileResponse) {
         val profileEntity = ProfileEntity(
             id = profile.id,
             nickname = profile.nickname,
@@ -24,11 +25,11 @@ class CacheProfileRepository(private val profileDao: ProfileDao) {
         profileDao.insertProfile(profileEntity)
     }
 
-    suspend fun clearProfile() {
+    override suspend fun clearProfile() {
         profileDao.deleteProfile()
     }
 
-    suspend fun getProfileId(): String {
+    override suspend fun getProfileId(): String {
         return profileDao.getProfileId()
     }
 }
