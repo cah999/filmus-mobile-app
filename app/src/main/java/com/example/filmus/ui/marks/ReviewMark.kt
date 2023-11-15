@@ -59,7 +59,6 @@ fun ReviewMark(mark: Int, modifier: Modifier = Modifier) {
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-//            horizontalArrangement = Arrangement.Center
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.star_3),

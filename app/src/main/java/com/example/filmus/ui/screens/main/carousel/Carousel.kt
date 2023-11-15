@@ -24,6 +24,9 @@ fun Carousel(
             .fillMaxWidth()
             .height(497.dp)
     ) {
+        if (movies.isEmpty()) {
+            return@Box
+        }
         HorizontalPager(state = pagerState) { page ->
             MoviePoster(movie = movies[page],
                 onClick = { navController.navigate("movie/${movies[page].id}") })

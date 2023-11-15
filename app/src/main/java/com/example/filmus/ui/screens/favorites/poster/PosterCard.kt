@@ -7,6 +7,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,20 +53,22 @@ fun PosterCard(
     val mContext = LocalContext.current
     Card(
         shape = RoundedCornerShape(0.dp),
-        modifier = Modifier.combinedClickable(
+        modifier = modifier.combinedClickable(
             onClick = { onCardClick(movie.id) },
             onLongClick = { showDialog.value = true }),
         colors = CardDefaults.cardColors(
             containerColor = Color.Transparent
         ),
     ) {
-        Column {
+        Column(modifier = Modifier.fillMaxSize()) {
             Box {
                 Image(
                     painter = imagePainter,
                     contentDescription = movie.name,
                     contentScale = ContentScale.Crop,
-                    modifier = modifier
+                    modifier = Modifier
+                        .height(205.dp)
+                        .fillMaxWidth()
                         .clip(RoundedCornerShape(3.dp))
                 )
                 if (movieRating != null) {

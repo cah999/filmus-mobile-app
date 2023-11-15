@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.filmus.domain.TokenManager
+import com.example.filmus.common.Constants
 import com.example.filmus.domain.UIState
 import com.example.filmus.domain.api.ApiResult
 import com.example.filmus.domain.api.createApiService
@@ -14,6 +14,7 @@ import com.example.filmus.domain.login.LoginUseCase
 import com.example.filmus.domain.profile.CacheProfileUseCase
 import com.example.filmus.domain.profile.ProfileResponse
 import com.example.filmus.domain.profile.ProfileUseCase
+import com.example.filmus.repository.TokenManager
 import com.example.filmus.repository.login.LoginRepository
 import com.example.filmus.repository.profile.ApiProfileRepository
 import com.example.filmus.repository.profile.CacheProfileRepository
@@ -22,11 +23,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class LoginViewModel(private val tokenManager: TokenManager) : ViewModel() {
-    // todo use ""
-    var username = mutableStateOf("testing")
-    var password = mutableStateOf("1234567")
+    var username = mutableStateOf(Constants.EMPTY)
+    var password = mutableStateOf(Constants.EMPTY)
     var state = mutableStateOf(UIState.DEFAULT)
-    var errorMessage = mutableStateOf("")
+    var errorMessage = mutableStateOf(Constants.EMPTY)
 
     fun login(username: String, password: String, onResult: (ApiResult<LoginResponse>) -> Unit) {
         viewModelScope.launch {
@@ -35,7 +35,7 @@ class LoginViewModel(private val tokenManager: TokenManager) : ViewModel() {
             val loginUseCase = LoginUseCase(loginRepository)
             val result = loginUseCase.login(username, password)
             if (result is ApiResult.Success) {
-                tokenManager.saveToken(result.data?.token ?: "")
+                tokenManager.saveToken(result.data?.token ?: Constants.EMPTY)
                 getProfile()
             }
             withContext(Dispatchers.Main) {
@@ -57,11 +57,11 @@ class LoginViewModel(private val tokenManager: TokenManager) : ViewModel() {
             }
 
             is ApiResult.Unauthorized -> {
-                Log.d("ProfileViewModel", "getProfile: unauthorized")
+                Log.d("ProfileViewModel", result.message ?: Constants.UNAUTHORIZED_ERROR)
             }
 
             is ApiResult.Error -> {
-                Log.d("ProfileViewModel", "getProfile: error")
+                Log.d("ProfileViewModel", result.message ?: Constants.UNKNOWN_ERROR)
             }
         }
     }

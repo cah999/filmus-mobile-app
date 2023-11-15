@@ -17,4 +17,8 @@ class FavoritesCacheUseCase(
     suspend fun removeFavorites(favorites: List<String>, userID: String) {
         favoritesCacheRepository.removeFavorites(favorites, userID)
     }
+
+    suspend fun clearFavorites(userID: String? = null) {
+        favoritesCacheRepository.clearFavorites(userID)
+    }
 }

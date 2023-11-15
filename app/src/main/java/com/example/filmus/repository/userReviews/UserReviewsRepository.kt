@@ -1,6 +1,5 @@
 package com.example.filmus.repository.userReviews
 
-import android.util.Log
 import com.example.filmus.domain.database.reviews.UserReviewDao
 import com.example.filmus.domain.database.reviews.UserReviewEntity
 
@@ -8,9 +7,7 @@ class UserReviewsRepository(private val userReviewDao: UserReviewDao) {
     suspend fun getProfileReviews(
         userID: String
     ): List<String> {
-        val res = userReviewDao.getUserReviews(userID)
-        Log.d("UserReviewsRepository", "getProfileReviews: $res")
-        return res
+        return userReviewDao.getUserReviews(userID)
     }
 
     suspend fun addReview(
@@ -24,5 +21,9 @@ class UserReviewsRepository(private val userReviewDao: UserReviewDao) {
         review: String
     ) {
         userReviewDao.deleteUserReview(review)
+    }
+
+    suspend fun clearReviews() {
+        userReviewDao.clearReviews()
     }
 }

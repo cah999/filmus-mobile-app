@@ -1,6 +1,5 @@
 package com.example.filmus.ui.screens.main
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -41,8 +40,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.filmus.R
-import com.example.filmus.domain.TokenManager
 import com.example.filmus.domain.UIState
+import com.example.filmus.repository.TokenManager
 import com.example.filmus.ui.navigation.Screen
 import com.example.filmus.ui.screens.main.carousel.Carousel
 import com.example.filmus.ui.screens.main.utils.MovieCard
@@ -57,19 +56,18 @@ import kotlin.math.min
 fun MainScreen(navController: NavHostController, tokenManager: TokenManager) {
     val viewModel: MainViewModel = viewModel(factory = MainViewModelFactory(tokenManager))
     val screenState by viewModel.screenState
-    val pullRefreshState = rememberPullRefreshState(screenState == UIState.LOADING, {
-        viewModel.getMovies(true)
-    })
     val listState = rememberLazyListState()
-    val movies = viewModel.movies
     val userReviews = viewModel.userReviews
+    val movies = viewModel.movies
     val pagerState = rememberPagerState { min(4, movies.size) }
+    val pullRefreshState = rememberPullRefreshState(screenState == UIState.LOADING, {
+        viewModel.getMovies(force = true)
+    })
     LaunchedEffect(Unit) {
         val secondScreenResult = navController.currentBackStackEntry
             ?.savedStateHandle
             ?.getLiveData<Boolean>("newReview")
             ?.value
-        Log.d("MainScreen", "LaunchedEffect: $secondScreenResult")
         if ((secondScreenResult != null) && (secondScreenResult == true)) {
             viewModel.getMovies(true)
         }
@@ -81,14 +79,16 @@ fun MainScreen(navController: NavHostController, tokenManager: TokenManager) {
             state = listState
         ) {
             item {
-                LaunchedEffect(pagerState) {
-                    while (movies.isNotEmpty()) {
-                        delay(5000)
-                        pagerState.animateScrollToPage((pagerState.currentPage + 1) % pagerState.pageCount)
-                    }
-                }
+                if (screenState != UIState.LOADING) {
+                    LaunchedEffect(pagerState) {
+                        while (true) {
+                            delay(5000)
+                            if (pagerState.pageCount > 1) {
+                                pagerState.animateScrollToPage((pagerState.currentPage + 1) % pagerState.pageCount)
+                            }
 
-                if (movies.isNotEmpty() && screenState != UIState.LOADING) {
+                        }
+                    }
                     Carousel(
                         movies = movies.subList(0, min(4, movies.size)),
                         pagerState = pagerState,
@@ -117,7 +117,7 @@ fun MainScreen(navController: NavHostController, tokenManager: TokenManager) {
             }
 
             val remainingMovies = movies.subList(min(4, movies.size), movies.size)
-            if (remainingMovies.isEmpty() && screenState != UIState.LOADING) {
+            if (screenState == UIState.LOADING) {
                 items(3) {
                     Row(
                         Modifier.padding(start = 16.dp, bottom = 12.dp, top = 15.dp, end = 16.dp),
@@ -140,16 +140,7 @@ fun MainScreen(navController: NavHostController, tokenManager: TokenManager) {
                     }
                 }
             } else {
-                Log.d("MainScreen", "LazyColumn: $remainingMovies")
                 items(remainingMovies) { movie ->
-                    Log.d(
-                        "MainScreen",
-                        "LazyColumn: ${movie.name} has reviews ${
-                            movie.reviews.find {
-                                userReviews.contains(it.id)
-                            }?.rating
-                        }"
-                    )
                     MovieCard(
                         moviePoster = movie.poster,
                         movieName = movie.name,
@@ -175,11 +166,15 @@ fun MainScreen(navController: NavHostController, tokenManager: TokenManager) {
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
-            }
-            if (screenState == UIState.LOADING) {
+            } else if (screenState == UIState.LOADING) {
                 items(3) {
                     Row(
-                        Modifier.padding(start = 16.dp, bottom = 12.dp, top = 15.dp, end = 16.dp),
+                        Modifier.padding(
+                            start = 16.dp,
+                            bottom = 12.dp,
+                            top = 15.dp,
+                            end = 16.dp
+                        ),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Box(
@@ -199,13 +194,13 @@ fun MainScreen(navController: NavHostController, tokenManager: TokenManager) {
                     }
                 }
             }
+
         }
         PullRefreshIndicator(
             screenState == UIState.LOADING,
             pullRefreshState,
             Modifier.align(Alignment.TopCenter)
         )
-
     }
     listState.OnBottomReached(onLoadMore = {
         if (screenState == UIState.DEFAULT)

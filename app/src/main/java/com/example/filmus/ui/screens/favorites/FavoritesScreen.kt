@@ -11,14 +11,15 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.filmus.common.Constants
-import com.example.filmus.domain.TokenManager
 import com.example.filmus.domain.UIState
+import com.example.filmus.repository.TokenManager
 import com.example.filmus.ui.navigation.Screen
 import com.example.filmus.ui.screens.favorites.poster.FavoritesList
 import com.example.filmus.ui.screens.favorites.states.LoadingPlaceholder
@@ -32,10 +33,10 @@ import com.example.filmus.viewmodel.favorites.FavoritesViewModelFactory
 fun FavoritesScreen(
     navController: NavHostController, tokenManager: TokenManager
 ) {
+    val viewModel: FavoritesViewModel = viewModel(factory = FavoritesViewModelFactory(tokenManager))
     val vibratorManager =
         LocalContext.current.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
     val vibrator = vibratorManager.defaultVibrator
-    val viewModel: FavoritesViewModel = viewModel(factory = FavoritesViewModelFactory(tokenManager))
     LaunchedEffect(Unit) {
         val secondScreenResult =
             navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("newFavorite")?.value
@@ -43,17 +44,15 @@ fun FavoritesScreen(
             navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("newReview")?.value
         if (((secondScreenResult != null) && (secondScreenResult == true)) || ((secondScreenResult2 != null) && (secondScreenResult2 == true))) {
             viewModel.getFavorites()
-            viewModel.getProfileReviews()
         }
     }
-    val userReviews = viewModel.userReviews
-    val movies = viewModel.movies
-    val screenState = viewModel.screenState
-    val pullRefreshState = rememberPullRefreshState(screenState.value == UIState.LOADING, {
+    val userReviews by viewModel.userReviews
+    val movies by viewModel.movies
+    val screenState by viewModel.screenState
+    val pullRefreshState = rememberPullRefreshState(screenState == UIState.LOADING, {
         viewModel.getFavorites()
-        viewModel.getProfileReviews()
     })
-    when (screenState.value) {
+    when (screenState) {
         UIState.UNAUTHORIZED -> {
             Toast.makeText(
                 LocalContext.current, Constants.UNAUTHORIZED_ERROR, Toast.LENGTH_SHORT
@@ -74,44 +73,46 @@ fun FavoritesScreen(
             ).show()
         }
 
-        else -> {}
-    }
-    Box(Modifier.pullRefresh(pullRefreshState)) {
-        if (screenState.value == UIState.LOADING) {
-            LoadingPlaceholder()
-        } else {
-            if (movies.isEmpty()) {
-                NoFavoritesPlaceholder()
-            } else {
-                FavoritesList(
-                    movies = movies,
-                    userReviews = userReviews.value,
-                    onCardClick = {
-                        vibrator.vibrate(
-                            VibrationEffect.createOneShot(
-                                Constants.VIBRATION_BUTTON_CLICK, VibrationEffect.DEFAULT_AMPLITUDE
-                            )
+        else -> {
+            Box(Modifier.pullRefresh(pullRefreshState)) {
+                if (screenState == UIState.LOADING) {
+                    LoadingPlaceholder()
+                } else {
+                    if (movies.isEmpty()) {
+                        NoFavoritesPlaceholder()
+                    } else {
+                        FavoritesList(
+                            movies = movies,
+                            userReviews = userReviews,
+                            onCardClick = {
+                                vibrator.vibrate(
+                                    VibrationEffect.createOneShot(
+                                        Constants.VIBRATION_BUTTON_CLICK,
+                                        VibrationEffect.DEFAULT_AMPLITUDE
+                                    )
+                                )
+                                navController.navigate("movie/${it}")
+                            },
+                            onDeleteClick = {
+                                vibrator.vibrate(
+                                    VibrationEffect.createOneShot(
+                                        Constants.VIBRATION_BUTTON_CLICK,
+                                        VibrationEffect.DEFAULT_AMPLITUDE
+                                    )
+                                )
+                                viewModel.removeFavorite(it)
+                            },
                         )
-                        navController.navigate("movie/${it}")
-                    },
-                    onDeleteClick = {
-                        vibrator.vibrate(
-                            VibrationEffect.createOneShot(
-                                Constants.VIBRATION_BUTTON_CLICK, VibrationEffect.DEFAULT_AMPLITUDE
-                            )
-                        )
-                        viewModel.removeFavorite(it)
-                    },
+                    }
+                }
+                PullRefreshIndicator(
+                    screenState == UIState.LOADING,
+                    pullRefreshState,
+                    Modifier.align(Alignment.TopCenter)
                 )
 
             }
         }
-        PullRefreshIndicator(
-            screenState.value == UIState.LOADING,
-            pullRefreshState,
-            Modifier.align(Alignment.TopCenter)
-        )
-
     }
 }
 

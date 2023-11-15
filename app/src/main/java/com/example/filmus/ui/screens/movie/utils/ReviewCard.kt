@@ -35,7 +35,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -45,13 +44,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.ImageLoader
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
-import coil.decode.ImageDecoderDecoder
-import coil.disk.DiskCache
-import coil.memory.MemoryCache
 import com.example.filmus.R
 import com.example.filmus.domain.movie.ReviewResponse
 import com.example.filmus.ui.marks.ReviewMark
@@ -65,22 +60,12 @@ fun ReviewCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val mContext = LocalContext.current
-    val imageLoader = ImageLoader.Builder(mContext).components {
-        add(ImageDecoderDecoder.Factory())
-    }.memoryCache {
-        MemoryCache.Builder(mContext).maxSizePercent(0.25).build()
-    }.diskCache {
-        DiskCache.Builder().directory(mContext.cacheDir.resolve("image_cache")).maxSizePercent(0.02)
-            .build()
-    }.build()
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             SubcomposeAsyncImage(
-                model = review.author?.avatar ?: "",
-                imageLoader = imageLoader,
+                model = if (review.isAnonymous) "" else review.author?.avatar ?: "",
                 contentDescription = null,
                 modifier = Modifier
                     .size(40.dp)

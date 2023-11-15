@@ -3,13 +3,12 @@ package com.example.filmus.ui.navigation
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.filmus.domain.TokenManager
+import com.example.filmus.repository.TokenManager
 import com.example.filmus.ui.screens.favorites.FavoritesScreen
 import com.example.filmus.ui.screens.login.LoginScreen
 import com.example.filmus.ui.screens.main.MainScreen
@@ -20,15 +19,13 @@ import com.example.filmus.ui.screens.registration.RegistrationScreen
 import com.example.filmus.ui.screens.splash.LoadingScreen
 import com.example.filmus.ui.screens.welcome.WelcomeScreen
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
-import com.example.filmus.viewmodel.registration.RegistrationViewModelFactory
 
 @Composable
 fun AppNavigation(
     navController: NavHostController,
+    registrationViewModel: RegistrationViewModel,
     tokenManager: TokenManager
 ) {
-    val registrationViewModel: RegistrationViewModel =
-        viewModel(factory = RegistrationViewModelFactory(tokenManager))
     NavHost(navController,
         startDestination = Screen.Loading.route,
         popEnterTransition = { fadeIn() },

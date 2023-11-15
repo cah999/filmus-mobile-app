@@ -1,4 +1,4 @@
-package com.example.filmus.domain
+package com.example.filmus.repository
 
 import android.content.Context
 import android.util.Log

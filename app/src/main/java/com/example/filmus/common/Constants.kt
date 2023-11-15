@@ -4,6 +4,8 @@ class Constants {
     companion object {
         const val EMPTY = ""
         const val API_URL = "https://react-midterm.kreosoft.space"
+        const val WATCH_API_URL = "hdrezkabmmsh9.org"
+        const val WATCH_SCHEME = "https"
         const val VIBRATION_BUTTON_CLICK = 50L
         const val VIBRATION_TYPING = 20L
         const val LOGIN_VALIDATION_ERROR = "Пользователь с таким логином уже существует"
@@ -14,10 +16,11 @@ class Constants {
         const val UNKNOWN_ERROR = "Неизвестная ошибка"
         const val BAD_REQUEST_ERROR = "Некорректный запрос"
         const val UNAUTHORIZED_ERROR =
-            "Время действия вашей сессии истекло. Пожалуйста, авторизуйтесь заново"
+            "Время действия вашей сессии истекло"
         const val LOGOUT_MESSAGE = "Вы успешно вышли из аккаунта!"
         const val UPDATE_DATA_SUCCESS = "Данные успешно обновлены!"
         const val REVIEW_EDIT_ERROR = "Нельзя изменить отзыв на анонимный"
+        const val TRANSLATIONS_NOT_FOUND = "Не найдены озвучки для данного фильма"
     }
 }
 

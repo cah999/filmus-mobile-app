@@ -140,7 +140,7 @@ fun CustomDateField(
 }
 
 // https://stackoverflow.com/questions/68468942/how-to-apply-a-mask-date-mm-dd-yyyy-in-textfield-with-jetpack-compose
-class DateTransformation() : VisualTransformation {
+class DateTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         return dateFilter(text)
     }

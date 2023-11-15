@@ -2,7 +2,7 @@ package com.example.filmus.viewmodel.movie
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.filmus.domain.TokenManager
+import com.example.filmus.repository.TokenManager
 
 class MovieViewModelFactory(
     private val movieId: String,

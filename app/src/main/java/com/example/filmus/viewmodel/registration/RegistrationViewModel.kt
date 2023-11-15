@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.filmus.domain.TokenManager
+import com.example.filmus.common.Constants
 import com.example.filmus.domain.UIState
 import com.example.filmus.domain.api.ApiResult
 import com.example.filmus.domain.api.createApiService
@@ -19,6 +19,7 @@ import com.example.filmus.domain.registration.register.RegistrationUseCase
 import com.example.filmus.domain.registration.validation.FieldValidationState
 import com.example.filmus.domain.registration.validation.ValidateRegistrationDataUseCase
 import com.example.filmus.domain.registration.validation.ValidationData
+import com.example.filmus.repository.TokenManager
 import com.example.filmus.repository.profile.ApiProfileRepository
 import com.example.filmus.repository.profile.CacheProfileRepository
 import com.example.filmus.repository.registration.RegistrationRepository
@@ -36,13 +37,13 @@ class RegistrationViewModel(
     ViewModel() {
 
 
-    var name = mutableStateOf("")
+    var name = mutableStateOf(Constants.EMPTY)
     var gender = mutableIntStateOf(1)
-    var login = mutableStateOf("")
-    var email = mutableStateOf("")
-    var birthDate = mutableStateOf("")
-    var password = mutableStateOf("")
-    var passwordRepeat = mutableStateOf("")
+    var login = mutableStateOf(Constants.EMPTY)
+    var email = mutableStateOf(Constants.EMPTY)
+    var birthDate = mutableStateOf(Constants.EMPTY)
+    var password = mutableStateOf(Constants.EMPTY)
+    var passwordRepeat = mutableStateOf(Constants.EMPTY)
     val validationStates = mutableStateOf(emptyList<FieldValidationState>())
     var screenState = mutableStateOf(UIState.DEFAULT)
     private val validateUseCase = ValidateRegistrationDataUseCase()
@@ -88,8 +89,6 @@ class RegistrationViewModel(
 
     fun register(onResult: (RegistrationResult) -> Unit) {
         viewModelScope.launch {
-            Log.d("RegistrationViewModel", "register: birthDate: $birthDate")
-            Log.d("RegistrationViewModel", "register: email: $email")
             val apiService = createApiService()
             val registrationRepository = RegistrationRepository(apiService)
             val registrationUseCase = RegistrationUseCase(registrationRepository)
@@ -126,11 +125,11 @@ class RegistrationViewModel(
             }
 
             is ApiResult.Unauthorized -> {
-                Log.d("ProfileViewModel", "getProfile: unauthorized")
+                Log.d("ProfileViewModel", Constants.UNAUTHORIZED_ERROR)
             }
 
             is ApiResult.Error -> {
-                Log.d("ProfileViewModel", "getProfile: error")
+                Log.d("ProfileViewModel", Constants.UNKNOWN_ERROR)
             }
         }
     }

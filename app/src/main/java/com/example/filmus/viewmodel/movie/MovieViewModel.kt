@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.filmus.common.Constants
-import com.example.filmus.domain.TokenManager
 import com.example.filmus.domain.UIState
 import com.example.filmus.domain.api.ApiResult
 import com.example.filmus.domain.api.createApiService
@@ -17,11 +16,19 @@ import com.example.filmus.domain.favorite.FavoritesUseCase
 import com.example.filmus.domain.movie.DetailedMovieResponse
 import com.example.filmus.domain.movie.MovieUseCase
 import com.example.filmus.domain.movie.ReviewRequest
+import com.example.filmus.domain.movieAPI.Api
+import com.example.filmus.domain.movieAPI.ExMovie
+import com.example.filmus.domain.movieAPI.Season
+import com.example.filmus.domain.movieAPI.Stream
+import com.example.filmus.domain.movieAPI.Translation
+import com.example.filmus.domain.movieAPI.WatchMovieUseCase
 import com.example.filmus.domain.profile.CacheProfileUseCase
 import com.example.filmus.domain.userReviews.UserReviewsUseCase
+import com.example.filmus.repository.TokenManager
 import com.example.filmus.repository.favorites.FavoritesCacheRepository
 import com.example.filmus.repository.favorites.FavoritesRepository
 import com.example.filmus.repository.movie.MovieRepository
+import com.example.filmus.repository.movie.watchMovie.WatchMovieRepository
 import com.example.filmus.repository.profile.CacheProfileRepository
 import com.example.filmus.repository.userReviews.UserReviewsRepository
 import kotlinx.coroutines.launch
@@ -31,22 +38,29 @@ class MovieViewModel(private val movieId: String, private val tokenManager: Toke
     var movieDetails = mutableStateOf(null as DetailedMovieResponse?)
     var isFavorite = mutableStateOf(false)
     var rating = mutableIntStateOf(0)
-    var review = mutableStateOf("")
-    var reviewID = mutableStateOf("")
+    var review = mutableStateOf(Constants.EMPTY)
+    var reviewID = mutableStateOf(Constants.EMPTY)
     var isAnonymous = mutableStateOf(false)
-    var userReviews = mutableListOf("")
+    var userReviews = mutableListOf(Constants.EMPTY)
     var existsReviewID = mutableStateOf(null as String?)
     var screenState = mutableStateOf(UIState.LOADING)
     var newReview = mutableStateOf(false)
     var newFavorite = mutableStateOf(false)
-    val errorMessage = mutableStateOf("")
+    val errorMessage = mutableStateOf(Constants.EMPTY)
+
+    private val moviePath = mutableStateOf(Constants.EMPTY)
+    val watchMovie = mutableStateOf(null as ExMovie?)
+    val movieTrailer = mutableStateOf(Constants.EMPTY)
 
     init {
         screenState.value = UIState.LOADING
-        getMovieDetails()
-        getUserReviews()
-        getIsFavorite()
-        screenState.value = UIState.DEFAULT
+        try {
+            getMovieDetails()
+//            getUserReviews()
+            getIsFavorite()
+        } finally {
+            screenState.value = UIState.DEFAULT
+        }
     }
 
     private fun getMovieDetails() {
@@ -61,17 +75,22 @@ class MovieViewModel(private val movieId: String, private val tokenManager: Toke
                         getUserReviews()
                         movieDetails.value = result.data
                         val review = result.data.reviews.find {
-                            (it?.author?.userId ?: "") == userID
+                            (it?.author?.userId ?: Constants.EMPTY) == userID
                         }
                         if (review != null) {
-                            val userReviewDatabase = UserReviewDatabase.getDatabase(
-                                context = tokenManager.context
-                            )
-                            val userReviewDao = userReviewDatabase.userReviewDao()
-                            val userReviewsUseCase =
-                                UserReviewsUseCase(UserReviewsRepository(userReviewDao))
-                            userReviewsUseCase.addReview(userID, review.id)
+                            // check if this review is already in userReviews
+                            if (review.id !in userReviews) {
+                                val userReviewDatabase = UserReviewDatabase.getDatabase(
+                                    context = tokenManager.context
+                                )
+                                val userReviewDao = userReviewDatabase.userReviewDao()
+                                val userReviewsUseCase =
+                                    UserReviewsUseCase(UserReviewsRepository(userReviewDao))
+                                userReviewsUseCase.addReview(userID, review.id)
+                                newReview.value = true
+                            }
                         }
+                        getWatchMovie()
                     }
                 }
 
@@ -106,9 +125,7 @@ class MovieViewModel(private val movieId: String, private val tokenManager: Toke
                     is ApiResult.Success -> {
                         if (result.data != null) {
                             cacheFavoritesUseCase.addFavorites(
-                                result.data.map { it.id },
-                                getProfileId(),
-                                true
+                                result.data.map { it.id }, getProfileId(), true
                             )
                             if (result.data.any { it.id == movieId }) {
                                 isFavorite.value = true
@@ -141,8 +158,7 @@ class MovieViewModel(private val movieId: String, private val tokenManager: Toke
             userReviewsUseCase.getProfileReviews(getProfileId()).let { reviewID ->
                 userReviews.addAll(reviewID)
             }
-            existsReviewID.value =
-                movieDetails.value?.reviews?.find { it?.id in userReviews }?.id
+            existsReviewID.value = movieDetails.value?.reviews?.find { it?.id in userReviews }?.id
         }
     }
 
@@ -223,14 +239,13 @@ class MovieViewModel(private val movieId: String, private val tokenManager: Toke
                 val apiService = createApiService(tokenManager.getToken())
                 val movieRepository = MovieRepository(apiService)
                 val movieUseCase = MovieUseCase(movieRepository)
-                when (
-                    movieUseCase.addReview(
-                        movieId, ReviewRequest(
-                            reviewText = review.value,
-                            rating = rating.intValue,
-                            isAnonymous = isAnonymous.value
-                        )
-                    )) {
+                when (movieUseCase.addReview(
+                    movieId, ReviewRequest(
+                        reviewText = review.value,
+                        rating = rating.intValue,
+                        isAnonymous = isAnonymous.value
+                    )
+                )) {
                     is ApiResult.Success -> {
                         getMovieDetails()
                     }
@@ -259,14 +274,13 @@ class MovieViewModel(private val movieId: String, private val tokenManager: Toke
                 val apiService = createApiService(tokenManager.getToken())
                 val movieRepository = MovieRepository(apiService)
                 val movieUseCase = MovieUseCase(movieRepository)
-                when (
-                    val res = movieUseCase.editReview(
-                        movieId, reviewID.value, ReviewRequest(
-                            reviewText = review.value,
-                            rating = rating.intValue,
-                            isAnonymous = isAnonymous.value
-                        )
-                    )) {
+                when (val res = movieUseCase.editReview(
+                    movieId, reviewID.value, ReviewRequest(
+                        reviewText = review.value,
+                        rating = rating.intValue,
+                        isAnonymous = isAnonymous.value
+                    )
+                )) {
                     is ApiResult.Success -> {
                         getMovieDetails()
                         screenState.value = UIState.DEFAULT
@@ -317,4 +331,125 @@ class MovieViewModel(private val movieId: String, private val tokenManager: Toke
         return profileUseCase.getProfileId()
     }
 
+    private suspend fun searchMovie(watchMovieUseCase: WatchMovieUseCase, query: String) {
+        when (val result = watchMovieUseCase.searchMovie(query)) {
+            is ApiResult.Success -> {
+                if (result.data != null) {
+                    moviePath.value = result.data
+                }
+            }
+
+            else -> {
+                screenState.value = UIState.ERROR
+            }
+        }
+    }
+
+
+    private suspend fun getMovieDetails(watchMovieUseCase: WatchMovieUseCase, path: String) {
+        when (val result = watchMovieUseCase.getMovieDetails(path)) {
+            is ApiResult.Success -> {
+                if (result.data != null) {
+                    watchMovie.value = result.data
+                }
+            }
+
+            else -> {
+                screenState.value = UIState.ERROR
+            }
+        }
+
+    }
+
+
+    private suspend fun loadMovieResolutions(
+        movieID: Int,
+        translation: Translation,
+        season: Int?,
+        episode: Int?
+    ): List<Stream> {
+        val api = Api()
+        val watchMovieRepository = WatchMovieRepository(api)
+        val watchMovieUseCase = WatchMovieUseCase(watchMovieRepository)
+        when (val result = watchMovieUseCase.loadMovieResolutions(
+            id = movieID, translationId = translation.id, season = season, episode = episode
+        )) {
+            is ApiResult.Success -> {
+                if (result.data != null) {
+                    return result.data
+                } else {
+                    screenState.value = UIState.ERROR
+                }
+            }
+
+            else -> {
+                screenState.value = UIState.ERROR
+            }
+        }
+        return listOf()
+
+    }
+
+    fun provideLoadResolutions(): suspend (Int, Translation, Int?, Int?) -> List<Stream> {
+        return { movieID, translation, season, episode ->
+            loadMovieResolutions(movieID, translation, season, episode)
+        }
+    }
+
+    private suspend fun loadSeasonsForTranslation(
+        movieID: Int,
+        translation: Int
+    ): List<Season> {
+        val api = Api()
+        val watchMovieRepository = WatchMovieRepository(api)
+        val watchMovieUseCase = WatchMovieUseCase(watchMovieRepository)
+        when (val result = watchMovieUseCase.loadSeasonsForTranslation(
+            id = movieID, translationId = translation
+        )) {
+            is ApiResult.Success -> {
+                if (result.data != null) {
+                    return result.data
+                } else {
+                    screenState.value = UIState.ERROR
+                }
+            }
+
+            else -> {
+                screenState.value = UIState.ERROR
+            }
+        }
+        return listOf()
+
+    }
+
+    fun provideLoadSeasonsForTranslation(): suspend (Int, Int) -> List<Season> {
+        return { movieID, translation ->
+            loadSeasonsForTranslation(movieID, translation)
+        }
+    }
+
+    private suspend fun getMovieTrailer(watchMovieUseCase: WatchMovieUseCase) {
+        when (val result = watchMovieUseCase.getMovieTrailer(watchMovie.value?.id ?: 0)) {
+            is ApiResult.Success -> {
+                if (result.data != null) {
+                    movieTrailer.value = result.data
+                }
+            }
+
+            else -> {
+                screenState.value = UIState.ERROR
+            }
+        }
+    }
+
+    private fun getWatchMovie() {
+        viewModelScope.launch {
+            val api = Api()
+            val watchMovieRepository = WatchMovieRepository(api)
+            val watchMovieUseCase = WatchMovieUseCase(watchMovieRepository)
+            searchMovie(watchMovieUseCase, movieDetails.value?.name ?: "")
+            getMovieDetails(watchMovieUseCase, moviePath.value)
+            getMovieTrailer(watchMovieUseCase)
+        }
+    }
 }

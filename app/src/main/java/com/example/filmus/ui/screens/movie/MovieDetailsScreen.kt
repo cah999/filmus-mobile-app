@@ -1,6 +1,10 @@
 package com.example.filmus.ui.screens.movie
 
 import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.VibrationEffect
 import android.os.VibratorManager
 import android.widget.Toast
@@ -41,6 +45,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,8 +73,8 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.filmus.R
 import com.example.filmus.common.Constants
-import com.example.filmus.domain.TokenManager
 import com.example.filmus.domain.UIState
+import com.example.filmus.repository.TokenManager
 import com.example.filmus.ui.marks.FilmMark
 import com.example.filmus.ui.navigation.Screen
 import com.example.filmus.ui.screens.movie.utils.InfoRow
@@ -77,6 +82,7 @@ import com.example.filmus.ui.screens.movie.utils.MovieDetailsPlaceholder
 import com.example.filmus.ui.screens.movie.utils.ReviewCard
 import com.example.filmus.ui.screens.movie.utils.ReviewDialog
 import com.example.filmus.ui.screens.movie.utils.verticalFadingEdge
+import com.example.filmus.ui.screens.movie.watch.WatchBottomSheet
 import com.example.filmus.viewmodel.movie.MovieViewModel
 import com.example.filmus.viewmodel.movie.MovieViewModelFactory
 
@@ -109,6 +115,42 @@ fun MovieDetailsScreen(
     var showDialog by remember { mutableStateOf(false) }
     val existsReviewID by viewModel.existsReviewID
     var showSheet by remember { mutableStateOf(false) }
+    var isShaking by remember { mutableStateOf(false) }
+    val sensorManager =
+        LocalContext.current.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    DisposableEffect(isShaking) {
+        val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
+        val sensorEventListener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                val x = event.values[0]
+                val y = event.values[1]
+                val z = event.values[2]
+                val acceleration = kotlin.math.sqrt(x * x + y * y + z * z)
+
+                if (acceleration > 20) {
+                    isShaking = true
+                    showSheet = true
+                    vibrator.vibrate(
+                        VibrationEffect.createOneShot(
+                            100, VibrationEffect.DEFAULT_AMPLITUDE
+                        )
+                    )
+                }
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+            }
+        }
+
+        sensorManager.registerListener(
+            sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL
+        )
+
+        onDispose {
+            sensorManager.unregisterListener(sensorEventListener)
+        }
+    }
     var isExpanded by remember { mutableStateOf(false) }
     val maxLines = if (isExpanded) Int.MAX_VALUE else 4
 
@@ -126,6 +168,7 @@ fun MovieDetailsScreen(
             navController.navigate(Screen.Login.route) {
                 popUpTo(Screen.Main.route) { inclusive = true }
             }
+            viewModel.screenState.value = UIState.DEFAULT
         }
 
         UIState.ERROR -> {
@@ -184,7 +227,15 @@ fun MovieDetailsScreen(
 
                             }
                             .padding(0.dp)
-                            .combinedClickable(onClick = { }, onLongClick = { showSheet = true }),
+                            .combinedClickable(onClick = { }, onLongClick = {
+                                vibrator.vibrate(
+                                    VibrationEffect.createOneShot(
+                                        Constants.VIBRATION_BUTTON_CLICK,
+                                        VibrationEffect.DEFAULT_AMPLITUDE
+                                    )
+                                )
+                                showSheet = true
+                            }),
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -604,11 +655,18 @@ fun MovieDetailsScreen(
             isAnonymous = viewModel.isAnonymous.value,
             onIsAnonymousChanged = { viewModel.isAnonymous.value = it })
     }
-//    if (movie != null) WatchBottomSheet(
-//        showSheet = showSheet,
-//        onDismissSheet = { showSheet = false },
-//        movieName = movie?.name ?: "",
-//    )
+    if (movie != null) WatchBottomSheet(
+        showSheet = showSheet,
+        isShaking = isShaking,
+        onDismissSheet = {
+            showSheet = false
+            isShaking = false
+        },
+        movie = viewModel.watchMovie.value,
+        trailerUrl = viewModel.movieTrailer.value,
+        onLoadResolutions = viewModel.provideLoadResolutions(),
+        onLoadSeasonsForTranslation = viewModel.provideLoadSeasonsForTranslation(),
+    )
 }
 
 

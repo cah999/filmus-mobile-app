@@ -11,8 +11,7 @@ class ValidateRegistrationDataUseCase {
         const val NAME_LENGTH_ERROR = "Имя должно содержать как минимум 2 символа"
         const val LOGIN_EMPTY_ERROR = "Логин не может быть пустым"
         const val LOGIN_LENGTH_ERROR = "Логин должен содержать как минимум 5 символов"
-        const val LOGIN_FORMAT_ERROR =
-            "Логин должен содержать только английские буквы и цифры"
+        const val LOGIN_FORMAT_ERROR = "Логин должен содержать только английские буквы и цифры"
         const val EMAIL_EMPTY_ERROR = "Электронная почта не может быть пустой"
         const val EMAIL_FORMAT_ERROR = "Неправильный формат электронной почты"
         const val BIRTH_DATE_EMPTY_ERROR = "Дата рождения не может быть пустой"
@@ -27,7 +26,7 @@ class ValidateRegistrationDataUseCase {
         val validationStates = mutableListOf<FieldValidationState>()
 
         validationStates.add(validateName(data.name))
-        validationStates.add(validateLogin(data.login))
+        if (data.login != null) validationStates.add(validateLogin(data.login))
         validationStates.add(validateEmail(data.email))
         validationStates.add(validateBirthDate(data.birthDate))
 

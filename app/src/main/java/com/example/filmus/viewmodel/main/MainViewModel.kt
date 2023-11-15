@@ -4,7 +4,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.filmus.domain.TokenManager
 import com.example.filmus.domain.UIState
 import com.example.filmus.domain.api.ApiResult
 import com.example.filmus.domain.api.createApiService
@@ -14,6 +13,7 @@ import com.example.filmus.domain.main.MainUseCase
 import com.example.filmus.domain.main.Movie
 import com.example.filmus.domain.profile.CacheProfileUseCase
 import com.example.filmus.domain.userReviews.UserReviewsUseCase
+import com.example.filmus.repository.TokenManager
 import com.example.filmus.repository.main.MainRepository
 import com.example.filmus.repository.profile.CacheProfileRepository
 import com.example.filmus.repository.userReviews.UserReviewsRepository
@@ -27,17 +27,21 @@ class MainViewModel(private val tokenManager: TokenManager) : ViewModel() {
 
     init {
         getMovies()
-        getProfileReviews()
     }
 
-    fun getMovies(force: Boolean = false) {
+    fun getMovies(force: Boolean = false, refresh: Boolean = false) {
         if (force) {
-            screenState.value = UIState.REFRESHING
             movies.clear()
             currentPage = 1
+            screenState.value = UIState.LOADING
+        } else if (refresh) {
+            screenState.value = UIState.REFRESHING
+        } else {
+            screenState.value = UIState.LOADING
         }
         viewModelScope.launch {
             try {
+                getProfileReviews()
                 val apiService = createApiService()
                 val mainRepository = MainRepository(apiService)
                 val mainUseCase = MainUseCase(mainRepository)
@@ -64,32 +68,23 @@ class MainViewModel(private val tokenManager: TokenManager) : ViewModel() {
 
     fun loadNextPage() {
         currentPage++
-        if (currentPage > 10) {
-            currentPage = 10
-        }
-        screenState.value = UIState.REFRESHING
         viewModelScope.launch {
-            getMovies()
+            getMovies(refresh = true)
         }
     }
 
-    private fun getProfileReviews() {
-        screenState.value = UIState.LOADING
-        viewModelScope.launch {
-            try {
+    private suspend fun getProfileReviews() {
+        val userReviewDatabase = UserReviewDatabase.getDatabase(
+            context = tokenManager.context
+        )
+        val userReviewDao = userReviewDatabase.userReviewDao()
+        val userReviewsUseCase = UserReviewsUseCase(UserReviewsRepository(userReviewDao))
+        userReviewsUseCase.getProfileReviews(getProfileId()).let { reviews ->
+            if (userReviews != reviews)
                 userReviews.clear()
-                val userReviewDatabase = UserReviewDatabase.getDatabase(
-                    context = tokenManager.context
-                )
-                val userReviewDao = userReviewDatabase.userReviewDao()
-                val userReviewsUseCase = UserReviewsUseCase(UserReviewsRepository(userReviewDao))
-                userReviewsUseCase.getProfileReviews(getProfileId()).let { reviews ->
-                    userReviews.addAll(reviews)
-                }
-            } finally {
-                screenState.value = UIState.DEFAULT
-            }
+            userReviews.addAll(reviews)
         }
+
     }
 
     private suspend fun getProfileId(): String {

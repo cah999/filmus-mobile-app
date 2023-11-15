@@ -39,9 +39,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.filmus.R
 import com.example.filmus.common.Constants
-import com.example.filmus.domain.TokenManager
 import com.example.filmus.domain.UIState
 import com.example.filmus.domain.api.ApiResult
+import com.example.filmus.repository.TokenManager
 import com.example.filmus.ui.fields.CustomTextField
 import com.example.filmus.ui.navigation.Screen
 import com.example.filmus.viewmodel.login.LoginViewModel

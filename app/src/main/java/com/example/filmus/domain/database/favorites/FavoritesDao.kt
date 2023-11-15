@@ -5,7 +5,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
-// todo что такое дао?
 @Dao
 interface FavoritesDao {
     @Query("SELECT movieID FROM favorites WHERE userId = :userId")
@@ -19,4 +18,7 @@ interface FavoritesDao {
 
     @Query("DELETE FROM favorites WHERE userId = :userId")
     suspend fun clearFavorites(userId: String)
+
+    @Query("DELETE FROM favorites")
+    suspend fun clearCache()
 }

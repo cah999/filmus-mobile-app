@@ -37,7 +37,6 @@ import com.example.filmus.R
 import com.example.filmus.ui.fields.CustomBigTextField
 import com.gowtham.ratingbar.RatingBar
 
-// todo не передавать на экране favorites вьюшку а сделать он клик
 @Composable
 fun ReviewDialog(
     onDismissRequest: () -> Unit,

@@ -2,7 +2,6 @@ package com.example.filmus.viewmodel.loading
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.filmus.domain.TokenManager
 import com.example.filmus.domain.api.ApiResult
 import com.example.filmus.domain.api.createApiService
 import com.example.filmus.domain.database.profile.ProfileDao
@@ -10,6 +9,7 @@ import com.example.filmus.domain.database.profile.ProfileDatabase
 import com.example.filmus.domain.profile.CacheProfileUseCase
 import com.example.filmus.domain.profile.ProfileResponse
 import com.example.filmus.domain.profile.ProfileUseCase
+import com.example.filmus.repository.TokenManager
 import com.example.filmus.repository.profile.ApiProfileRepository
 import com.example.filmus.repository.profile.CacheProfileRepository
 import kotlinx.coroutines.Dispatchers

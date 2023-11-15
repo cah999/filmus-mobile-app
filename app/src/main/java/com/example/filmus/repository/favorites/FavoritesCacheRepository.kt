@@ -23,7 +23,8 @@ class FavoritesCacheRepository(
         favoritesDao.deleteFavorites(favorites, userID)
     }
 
-    suspend fun clearFavorites(userID: String) {
-        favoritesDao.clearFavorites(userID)
+    suspend fun clearFavorites(userID: String?) {
+        if (userID != null) favoritesDao.clearFavorites(userID)
+        else favoritesDao.clearCache()
     }
 }

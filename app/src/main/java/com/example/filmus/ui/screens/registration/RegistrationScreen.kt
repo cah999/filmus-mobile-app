@@ -3,7 +3,6 @@ package com.example.filmus.ui.screens.registration
 import android.content.Context
 import android.os.VibrationEffect
 import android.os.VibratorManager
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -171,7 +170,6 @@ fun RegistrationScreen(
         )
 
         if (loginValidationState != null && !loginValidationState.isValid) {
-            Log.d("RegistrationScreen", "RegistrationScreen: ${loginValidationState.errorMessage}")
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = loginValidationState.errorMessage, style = TextStyle(
@@ -241,7 +239,6 @@ fun RegistrationScreen(
                     birthDateValidationState.isValid = true
                 }
                 birthDate = it
-                Log.d("RegistrationScreen", "RegistrationScreen: $viewModel.birthDate")
             },
             textFieldValue = birthDate,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),

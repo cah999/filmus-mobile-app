@@ -14,4 +14,8 @@ class UserReviewsUseCase(private val userReviewsRepository: UserReviewsRepositor
     suspend fun removeReview(review: String) {
         userReviewsRepository.removeReview(review = review)
     }
+
+    suspend fun clearReviews() {
+        userReviewsRepository.clearReviews()
+    }
 }

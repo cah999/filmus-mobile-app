@@ -3,7 +3,6 @@ package com.example.filmus.ui.screens.profile
 import android.content.Context
 import android.os.VibrationEffect
 import android.os.VibratorManager
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -75,8 +74,8 @@ import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import com.example.filmus.R
 import com.example.filmus.common.Constants
-import com.example.filmus.domain.TokenManager
 import com.example.filmus.domain.UIState
+import com.example.filmus.repository.TokenManager
 import com.example.filmus.ui.fields.CustomDateField
 import com.example.filmus.ui.fields.CustomTextField
 import com.example.filmus.ui.fields.GenderSelection
@@ -101,7 +100,7 @@ fun ProfileScreen(
     var gender by viewModel.gender
     var birthDate by viewModel.birthDate
     var buttonEnabled by remember { mutableStateOf(false) }
-    val screenState by viewModel.screenState
+    var screenState by viewModel.screenState
     val pullRefreshState = rememberPullRefreshState(screenState == UIState.LOADING, {
         viewModel.getInfo(true)
     })
@@ -117,18 +116,16 @@ fun ProfileScreen(
 
     var enlargedImage by remember { mutableStateOf(false) }
     val showDialog = remember { mutableStateOf(false) }
-    if (viewModel.isLogout.value) {
-        Toast.makeText(mContext, viewModel.logoutMessage.value, Toast.LENGTH_SHORT).show()
-        navController.navigate(Screen.Welcome.route) {
-            popUpTo(0)
-        }
-    }
+    val nameValidationState = viewModel.validationStates.value.getOrNull(0)
+    val emailValidationState = viewModel.validationStates.value.getOrNull(1)
+    val birthDateValidationState = viewModel.validationStates.value.getOrNull(2)
     LaunchedEffect(Unit) {
         viewModel.getInfo()
     }
     when (viewModel.screenState.value) {
         UIState.ERROR -> {
             Toast.makeText(mContext, Constants.UNKNOWN_ERROR, Toast.LENGTH_SHORT).show()
+            screenState = UIState.DEFAULT
         }
 
         UIState.UNAUTHORIZED -> {
@@ -136,299 +133,376 @@ fun ProfileScreen(
             navController.navigate(Screen.Login.route) {
                 popUpTo(0)
             }
+            screenState = UIState.DEFAULT
         }
 
         else -> {}
     }
+
     Box(Modifier.pullRefresh(pullRefreshState)) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Box(
-                modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        if (screenState == UIState.LOADING) {
+            ProfilePlaceholder()
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
-                val longPressDetector = Modifier.combinedClickable(onLongClick = {
-                    vibrator.vibrate(
-                        VibrationEffect.createOneShot(
-                            Constants.VIBRATION_BUTTON_CLICK, VibrationEffect.DEFAULT_AMPLITUDE
-                        )
-                    )
-                    enlargedImage = true
-                }, onClick = {
-                    enlargedImage = false
-                })
-                SubcomposeAsyncImage(
-                    model = if (!enlargedImage) link else Constants.EMPTY,
-                    imageLoader = imageLoader,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(88.dp)
-                        .clip(CircleShape)
-                        .background(Color.Transparent, shape = CircleShape)
-                        .then(longPressDetector),
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center
+                Box(
+                    modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                 ) {
-                    when (painter.state) {
-                        is AsyncImagePainter.State.Success -> {
-                            SubcomposeAsyncImageContent()
-                        }
-
-                        is AsyncImagePainter.State.Error -> {
-                            Image(
-                                painter = painterResource(id = R.drawable.anonymous),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(88.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.Transparent, shape = CircleShape)
+                    val longPressDetector = Modifier.combinedClickable(onLongClick = {
+                        vibrator.vibrate(
+                            VibrationEffect.createOneShot(
+                                Constants.VIBRATION_BUTTON_CLICK,
+                                VibrationEffect.DEFAULT_AMPLITUDE
                             )
-                        }
+                        )
+                        enlargedImage = true
+                    }, onClick = {
+                        enlargedImage = false
+                    })
+                    SubcomposeAsyncImage(
+                        model = if (!enlargedImage) link else Constants.EMPTY,
+                        imageLoader = imageLoader,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(88.dp)
+                            .clip(CircleShape)
+                            .background(Color.Transparent, shape = CircleShape)
+                            .then(longPressDetector),
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center
+                    ) {
+                        when (painter.state) {
+                            is AsyncImagePainter.State.Success -> {
+                                SubcomposeAsyncImageContent()
+                            }
 
-                        is AsyncImagePainter.State.Empty -> {
-                            Image(
-                                painter = painterResource(id = R.drawable.anonymous),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(88.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.Transparent, shape = CircleShape)
-                            )
-                        }
+                            is AsyncImagePainter.State.Error -> {
+                                Image(
+                                    painter = painterResource(id = R.drawable.anonymous),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(88.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.Transparent, shape = CircleShape)
+                                )
+                            }
 
-                        is AsyncImagePainter.State.Loading -> {
-                            CircularProgressIndicator(
-                                color = Color(0xFFFC315E), trackColor = Color(0x1AFC315E)
-                            )
+                            is AsyncImagePainter.State.Empty -> {
+                                Image(
+                                    painter = painterResource(id = R.drawable.anonymous),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(88.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.Transparent, shape = CircleShape)
+                                )
+                            }
+
+                            is AsyncImagePainter.State.Loading -> {
+                                CircularProgressIndicator(
+                                    color = Color(0xFFFC315E),
+                                    trackColor = Color(0x1AFC315E)
+                                )
+                            }
                         }
                     }
                 }
-            }
 
 
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = nickname,
-
-                style = TextStyle(
-                    fontSize = 24.sp,
-                    fontFamily = FontFamily(Font(R.font.inter)),
-                    fontWeight = FontWeight(700),
-                    color = Color(0xFFFFFFFF),
-                    textAlign = TextAlign.Center,
-                ), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
-            )
-            Button(
-                onClick = {
-                    showDialog.value = true
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(42.dp),
-                shape = RoundedCornerShape(size = 10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                ),
-
-                ) {
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Выйти из аккаунта",
+                    text = nickname,
 
                     style = TextStyle(
-                        fontSize = 15.sp,
+                        fontSize = 24.sp,
                         fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(600),
-                        color = Color(0xFFFC315E),
-
-                        textAlign = TextAlign.Center,
-                    )
-                )
-            }
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                text = "Электронная почта",
-
-                style = TextStyle(
-                    fontSize = 15.sp,
-                    fontFamily = FontFamily(Font(R.font.inter)),
-                    fontWeight = FontWeight(500),
-                    color = Color(0xFFFFFFFF),
-                    textAlign = TextAlign.Center,
-                )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-
-            CustomTextField(
-                onValueChange = {
-                    if (!buttonEnabled) buttonEnabled = true
-                    email = it
-                },
-                textFieldValue = email,
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-                isPassword = false,
-                vibrator = vibrator
-            )
-            Spacer(modifier = Modifier.height(15.dp))
-            Text(
-                text = "Ссылка на аватар", style = TextStyle(
-                    fontSize = 15.sp,
-                    fontFamily = FontFamily(Font(R.font.inter)),
-                    fontWeight = FontWeight(500),
-                    color = Color(0xFFFFFFFF),
-                    textAlign = TextAlign.Center,
-                )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            CustomTextField(
-                onValueChange = {
-                    if (!buttonEnabled) buttonEnabled = true
-                    link = it
-                },
-                textFieldValue = link,
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-                isPassword = false,
-                vibrator = vibrator
-            )
-
-            Spacer(modifier = Modifier.height(15.dp))
-            Text(
-                text = "Имя", style = TextStyle(
-                    fontSize = 15.sp,
-                    fontFamily = FontFamily(Font(R.font.inter)),
-                    fontWeight = FontWeight(500),
-                    color = Color(0xFFFFFFFF),
-                    textAlign = TextAlign.Center,
-                )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            CustomTextField(
-                onValueChange = {
-                    if (!buttonEnabled) buttonEnabled = true
-                    name = it
-                },
-                textFieldValue = name,
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-                isPassword = false,
-                vibrator = vibrator
-            )
-            Spacer(modifier = Modifier.height(15.dp))
-            Text(
-                text = "Пол",
-
-                style = TextStyle(
-                    fontSize = 15.sp,
-                    fontFamily = FontFamily(Font(R.font.inter)),
-                    fontWeight = FontWeight(500),
-                    color = Color(0xFFFFFFFF),
-                    textAlign = TextAlign.Center,
-                )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Log.d("ProfileScreen", "gender value is $gender")
-            GenderSelection(
-                defaultIsMale = viewModel.gender, onGenderSelected = { selectedGender ->
-                    gender = selectedGender
-                    if (!buttonEnabled) buttonEnabled = true
-                }, vibrator = vibrator
-            )
-            Spacer(modifier = Modifier.height(15.dp))
-
-            Text(
-                text = "Дата рождения", style = TextStyle(
-                    fontSize = 15.sp,
-                    fontFamily = FontFamily(Font(R.font.inter)),
-                    fontWeight = FontWeight(500),
-                    color = Color(0xFFFFFFFF),
-                    textAlign = TextAlign.Center,
-                )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            CustomDateField(
-                onValueChange = {
-                    if (!buttonEnabled) buttonEnabled = true
-                    birthDate = it
-                },
-                textFieldValue = birthDate,
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                vibrator = vibrator
-            )
-            Spacer(modifier = Modifier.height(15.dp))
-            Button(
-                onClick = {
-                    vibrator.vibrate(
-                        VibrationEffect.createOneShot(
-                            Constants.VIBRATION_BUTTON_CLICK, VibrationEffect.DEFAULT_AMPLITUDE
-                        )
-                    )
-                    viewModel.updateInfo()
-                    Toast.makeText(
-                        mContext, Constants.UPDATE_DATA_SUCCESS, Toast.LENGTH_SHORT
-                    ).show()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(42.dp)
-                    .alpha(
-                        if (buttonEnabled) 1f else 0.45f
-                    ),
-                shape = RoundedCornerShape(size = 10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFC315E),
-                    disabledContainerColor = Color(0xFFFC315E),
-                ),
-                enabled = buttonEnabled,
-
-                ) {
-                Text(
-                    text = "Сохранить",
-
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(600),
+                        fontWeight = FontWeight(700),
                         color = Color(0xFFFFFFFF),
                         textAlign = TextAlign.Center,
-                    ),
+                    ), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
                 )
-            }
-            Spacer(modifier = Modifier.height(15.dp))
-            Button(
-                onClick = {
-                    vibrator.vibrate(
-                        VibrationEffect.createOneShot(
-                            Constants.VIBRATION_BUTTON_CLICK, VibrationEffect.DEFAULT_AMPLITUDE
+                Button(
+                    onClick = {
+                        showDialog.value = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(42.dp),
+                    shape = RoundedCornerShape(size = 10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                    ),
+
+                    ) {
+                    Text(
+                        text = "Выйти из аккаунта",
+
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            fontFamily = FontFamily(Font(R.font.inter)),
+                            fontWeight = FontWeight(600),
+                            color = Color(0xFFFC315E),
+
+                            textAlign = TextAlign.Center,
                         )
                     )
-                    viewModel.getInfo()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(42.dp),
-                shape = RoundedCornerShape(size = 10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF292929),
-                    disabledContainerColor = Color(0xFF292929),
-                ),
-
-                ) {
+                }
+                Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = "Отмена",
+                    text = "Электронная почта",
 
                     style = TextStyle(
                         fontSize = 15.sp,
                         fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(600),
-                        color = Color(0xFFFC315E),
+                        fontWeight = FontWeight(500),
+                        color = Color(0xFFFFFFFF),
                         textAlign = TextAlign.Center,
                     )
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+
+
+                CustomTextField(
+                    onValueChange = {
+                        if (!buttonEnabled) buttonEnabled = true
+                        if (emailValidationState != null && !emailValidationState.isValid) {
+                            emailValidationState.isValid = true
+                        }
+                        email = it
+                    },
+                    textFieldValue = email,
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                    containerColor = Color(viewModel.getContainerColor(emailValidationState)),
+                    outlinedColor = Color(viewModel.getOutlineColor(emailValidationState)),
+                    isPassword = false,
+                    vibrator = vibrator
+                )
+                if (emailValidationState != null && !emailValidationState.isValid) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = emailValidationState.errorMessage, style = TextStyle(
+                            fontSize = 14.sp,
+                            fontFamily = FontFamily(Font(R.font.inter)),
+                            fontWeight = FontWeight(400),
+                            color = Color(0xFFE64646),
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.height(15.dp))
+                Text(
+                    text = "Ссылка на аватар", style = TextStyle(
+                        fontSize = 15.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(500),
+                        color = Color(0xFFFFFFFF),
+                        textAlign = TextAlign.Center,
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                CustomTextField(
+                    onValueChange = {
+                        if (!buttonEnabled) buttonEnabled = true
+                        link = it
+                    },
+                    textFieldValue = link,
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                    isPassword = false,
+                    vibrator = vibrator
+                )
+
+                Spacer(modifier = Modifier.height(15.dp))
+
+                Text(
+                    text = "Имя", style = TextStyle(
+                        fontSize = 15.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(500),
+                        color = Color(0xFFFFFFFF),
+                        textAlign = TextAlign.Center,
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                CustomTextField(
+                    onValueChange = {
+                        if (!buttonEnabled) buttonEnabled = true
+                        if (nameValidationState != null && !nameValidationState.isValid) {
+                            nameValidationState.isValid = true
+                        }
+                        name = it
+                    },
+                    textFieldValue = name,
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                    containerColor = Color(viewModel.getContainerColor(nameValidationState)),
+                    outlinedColor = Color(viewModel.getOutlineColor(nameValidationState)),
+                    isPassword = false,
+                    vibrator = vibrator
+                )
+                if (nameValidationState != null && !nameValidationState.isValid) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = nameValidationState.errorMessage, style = TextStyle(
+                            fontSize = 14.sp,
+                            fontFamily = FontFamily(Font(R.font.inter)),
+                            fontWeight = FontWeight(400),
+                            color = Color(0xFFE64646),
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.height(15.dp))
+                Text(
+                    text = "Пол",
+
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(500),
+                        color = Color(0xFFFFFFFF),
+                        textAlign = TextAlign.Center,
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                GenderSelection(
+                    defaultIsMale = viewModel.gender, onGenderSelected = { selectedGender ->
+                        gender = selectedGender
+                        if (!buttonEnabled) buttonEnabled = true
+                    }, vibrator = vibrator
+                )
+                Spacer(modifier = Modifier.height(15.dp))
+
+                Text(
+                    text = "Дата рождения", style = TextStyle(
+                        fontSize = 15.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(500),
+                        color = Color(0xFFFFFFFF),
+                        textAlign = TextAlign.Center,
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                CustomDateField(
+                    onValueChange = {
+                        if (!buttonEnabled) buttonEnabled = true
+                        if (birthDateValidationState != null && !birthDateValidationState.isValid) {
+                            birthDateValidationState.isValid = true
+                        }
+                        birthDate = it
+                    },
+                    textFieldValue = birthDate,
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                    containerColor = Color(
+                        viewModel.getContainerColor(
+                            birthDateValidationState
+                        )
+                    ),
+                    outlinedColor = Color(viewModel.getOutlineColor(birthDateValidationState)),
+                    vibrator = vibrator
+                )
+                if (birthDateValidationState != null && !birthDateValidationState.isValid) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = birthDateValidationState.errorMessage, style = TextStyle(
+                            fontSize = 14.sp,
+                            fontFamily = FontFamily(Font(R.font.inter)),
+                            fontWeight = FontWeight(400),
+                            color = Color(0xFFE64646),
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.height(15.dp))
+                Button(
+                    onClick = {
+                        vibrator.vibrate(
+                            VibrationEffect.createOneShot(
+                                Constants.VIBRATION_BUTTON_CLICK,
+                                VibrationEffect.DEFAULT_AMPLITUDE
+                            )
+                        )
+                        viewModel.validateProfileData()
+
+                        if (viewModel.validationStates.value.all { it.isValid }) {
+                            viewModel.updateInfo(onResult = { result ->
+                                if (result) {
+                                    Toast.makeText(
+                                        mContext,
+                                        Constants.UPDATE_DATA_SUCCESS,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    buttonEnabled = false
+                                }
+                            })
+                        } else {
+                            vibrator.vibrate(
+                                VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(42.dp)
+                        .alpha(
+                            if (buttonEnabled) 1f else 0.45f
+                        ),
+                    shape = RoundedCornerShape(size = 10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFC315E),
+                        disabledContainerColor = Color(0xFFFC315E),
+                    ),
+                    enabled = buttonEnabled,
+
+                    ) {
+                    Text(
+                        text = "Сохранить",
+
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            fontFamily = FontFamily(Font(R.font.inter)),
+                            fontWeight = FontWeight(600),
+                            color = Color(0xFFFFFFFF),
+                            textAlign = TextAlign.Center,
+                        ),
+                    )
+                }
+                Spacer(modifier = Modifier.height(15.dp))
+                Button(
+                    onClick = {
+                        vibrator.vibrate(
+                            VibrationEffect.createOneShot(
+                                Constants.VIBRATION_BUTTON_CLICK,
+                                VibrationEffect.DEFAULT_AMPLITUDE
+                            )
+                        )
+                        viewModel.getInfo()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(42.dp),
+                    shape = RoundedCornerShape(size = 10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF292929),
+                        disabledContainerColor = Color(0xFF292929),
+                    ),
+
+                    ) {
+                    Text(
+                        text = "Отмена",
+
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            fontFamily = FontFamily(Font(R.font.inter)),
+                            fontWeight = FontWeight(600),
+                            color = Color(0xFFFC315E),
+                            textAlign = TextAlign.Center,
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
         PullRefreshIndicator(
@@ -436,9 +510,6 @@ fun ProfileScreen(
             pullRefreshState,
             Modifier.align(Alignment.TopCenter)
         )
-
-        Spacer(modifier = Modifier.height(15.dp))
-
 
     }
     if (showDialog.value) {
@@ -468,7 +539,18 @@ fun ProfileScreen(
                             Constants.VIBRATION_BUTTON_CLICK, VibrationEffect.DEFAULT_AMPLITUDE
                         )
                     )
-                    viewModel.logout()
+                    viewModel.logout(onResult = { result ->
+                        if (result) {
+                            Toast.makeText(
+                                mContext,
+                                Constants.LOGOUT_MESSAGE,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            navController.navigate(Screen.Welcome.route) {
+                                popUpTo(0)
+                            }
+                        }
+                    })
                     showDialog.value = false
 
                 }, style = TextStyle(

@@ -29,7 +29,6 @@ fun FavoritesList(
     onDeleteClick: (String) -> Unit,
 ) {
     val postersInRows = movies.chunked(3)
-
     LazyColumn(Modifier.padding(top = 16.dp)) {
         item {
             Text(
