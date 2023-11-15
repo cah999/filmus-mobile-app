@@ -1,6 +1,8 @@
 package com.example.filmus.ui.screens.registration
 
-import android.util.Log
+import android.content.Context
+import android.os.VibrationEffect
+import android.os.VibratorManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,12 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -34,19 +35,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.filmus.R
-import com.example.filmus.navigation.Screen
+import com.example.filmus.common.Constants
 import com.example.filmus.ui.fields.CustomDateField
 import com.example.filmus.ui.fields.CustomTextField
 import com.example.filmus.ui.fields.GenderSelection
+import com.example.filmus.ui.navigation.Screen
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistrationScreen(
     navController: NavHostController, viewModel: RegistrationViewModel
 ) {
-
+    val vibratorManager =
+        LocalContext.current.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+    val vibrator = vibratorManager.defaultVibrator
     var name by viewModel.name
     var login by viewModel.login
     var email by viewModel.email
@@ -106,7 +109,8 @@ fun RegistrationScreen(
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             containerColor = Color(viewModel.getContainerColor(nameValidationState)),
             outlinedColor = Color(viewModel.getOutlineColor(nameValidationState)),
-            isPassword = false
+            isPassword = false,
+            vibrator = vibrator
         )
 
         if (nameValidationState != null && !nameValidationState.isValid) {
@@ -134,8 +138,10 @@ fun RegistrationScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         GenderSelection(
-            defaultIsMale = gender,
-            onGenderSelected = { gender = it })
+            defaultIsMale = viewModel.gender,
+            onGenderSelected = { gender = it },
+            vibrator = vibrator
+        )
         Spacer(modifier = Modifier.height(15.dp))
         Text(
             text = "Логин", style = TextStyle(
@@ -159,7 +165,8 @@ fun RegistrationScreen(
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             containerColor = Color(viewModel.getContainerColor(loginValidationState)),
             outlinedColor = Color(viewModel.getOutlineColor(loginValidationState)),
-            isPassword = false
+            isPassword = false,
+            vibrator = vibrator
         )
 
         if (loginValidationState != null && !loginValidationState.isValid) {
@@ -196,7 +203,8 @@ fun RegistrationScreen(
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             containerColor = Color(viewModel.getContainerColor(emailValidationState)),
             outlinedColor = Color(viewModel.getOutlineColor(emailValidationState)),
-            isPassword = false
+            isPassword = false,
+            vibrator = vibrator
         )
 
         if (emailValidationState != null && !emailValidationState.isValid) {
@@ -231,12 +239,12 @@ fun RegistrationScreen(
                     birthDateValidationState.isValid = true
                 }
                 birthDate = it
-                Log.d("RegistrationScreen", "RegistrationScreen: $viewModel.birthDate")
             },
             textFieldValue = birthDate,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             containerColor = Color(viewModel.getContainerColor(birthDateValidationState)),
             outlinedColor = Color(viewModel.getOutlineColor(birthDateValidationState)),
+            vibrator = vibrator
         )
         if (birthDateValidationState != null && !birthDateValidationState.isValid) {
             Spacer(modifier = Modifier.height(8.dp))
@@ -253,18 +261,24 @@ fun RegistrationScreen(
 
         Button(
             onClick = {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        Constants.VIBRATION_BUTTON_CLICK,
+                        VibrationEffect.DEFAULT_AMPLITUDE
+                    )
+                )
                 viewModel.validateRegistrationData()
-                val validationStateList = viewModel.validationStates.value
 
-                val isDataValid = validationStateList.all { it.isValid }
-
-
-                if (isDataValid) {
+                if (viewModel.validationStates.value.all { it.isValid }) {
                     navController.navigate(Screen.RegistrationPwd.route)
+                } else {
+                    vibrator.vibrate(
+                        VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
+                    )
                 }
             },
             modifier = Modifier
-                .width(328.dp)
+                .fillMaxWidth()
                 .height(42.dp)
                 .alpha(
                     if (buttonEnabled) 1f else 0.45f
@@ -316,6 +330,12 @@ fun RegistrationScreen(
                     textAlign = TextAlign.Center,
                 ),
                 modifier = Modifier.clickable {
+                    vibrator.vibrate(
+                        VibrationEffect.createOneShot(
+                            Constants.VIBRATION_BUTTON_CLICK,
+                            VibrationEffect.DEFAULT_AMPLITUDE
+                        )
+                    )
                     navController.navigate(Screen.Login.route)
                 },
             )

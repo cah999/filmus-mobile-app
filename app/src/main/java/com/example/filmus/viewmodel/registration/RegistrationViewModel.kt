@@ -1,17 +1,27 @@
 package com.example.filmus.viewmodel.registration
 
 import android.util.Log
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.filmus.api.RegistrationRequest
-import com.example.filmus.api.createApiService
-import com.example.filmus.domain.TokenManager
-import com.example.filmus.domain.registration.register.RegistrationData
+import com.example.filmus.common.Constants
+import com.example.filmus.domain.UIState
+import com.example.filmus.domain.api.ApiResult
+import com.example.filmus.domain.api.createApiService
+import com.example.filmus.domain.database.profile.ProfileDatabase
+import com.example.filmus.domain.profile.CacheProfileUseCase
+import com.example.filmus.domain.profile.ProfileResponse
+import com.example.filmus.domain.profile.ProfileUseCase
+import com.example.filmus.domain.registration.register.RegistrationRequest
 import com.example.filmus.domain.registration.register.RegistrationResult
 import com.example.filmus.domain.registration.register.RegistrationUseCase
 import com.example.filmus.domain.registration.validation.FieldValidationState
 import com.example.filmus.domain.registration.validation.ValidateRegistrationDataUseCase
+import com.example.filmus.domain.registration.validation.ValidationData
+import com.example.filmus.repository.TokenManager
+import com.example.filmus.repository.profile.ApiProfileRepository
+import com.example.filmus.repository.profile.CacheProfileRepository
 import com.example.filmus.repository.registration.RegistrationRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,14 +37,15 @@ class RegistrationViewModel(
     ViewModel() {
 
 
-    var name = mutableStateOf("")
-    var gender = mutableStateOf(true)
-    var login = mutableStateOf("")
-    var email = mutableStateOf("")
-    var birthDate = mutableStateOf("")
-    var password = mutableStateOf("")
-    var passwordRepeat = mutableStateOf("")
+    var name = mutableStateOf(Constants.EMPTY)
+    var gender = mutableIntStateOf(1)
+    var login = mutableStateOf(Constants.EMPTY)
+    var email = mutableStateOf(Constants.EMPTY)
+    var birthDate = mutableStateOf(Constants.EMPTY)
+    var password = mutableStateOf(Constants.EMPTY)
+    var passwordRepeat = mutableStateOf(Constants.EMPTY)
     val validationStates = mutableStateOf(emptyList<FieldValidationState>())
+    var screenState = mutableStateOf(UIState.DEFAULT)
     private val validateUseCase = ValidateRegistrationDataUseCase()
     fun getOutlineColor(state: FieldValidationState?): Int {
         return if (state?.isValid == false) {
@@ -59,7 +70,7 @@ class RegistrationViewModel(
     }
 
     fun validateRegistrationData() {
-        val data = RegistrationData(
+        val data = ValidationData(
             name = name.value, login = login.value, email = email.value, birthDate = birthDate.value
         )
 
@@ -68,7 +79,6 @@ class RegistrationViewModel(
     }
 
     private fun formatDateToISO8601(birthDate: String): String {
-        Log.d("RegistrationViewModel", "formatDateToISO8601: $birthDate")
         val inputFormat = SimpleDateFormat("ddMMyyyy", Locale.getDefault())
         val outputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
 
@@ -78,11 +88,9 @@ class RegistrationViewModel(
     }
 
     fun register(onResult: (RegistrationResult) -> Unit) {
-        viewModelScope.launch() {
-            Log.d("RegistrationViewModel", "register: birthDate: ${birthDate}")
-            Log.d("RegistrationViewModel", "register: email: ${email}")
+        viewModelScope.launch {
             val apiService = createApiService()
-            val registrationRepository = RegistrationRepository(apiService, tokenManager)
+            val registrationRepository = RegistrationRepository(apiService)
             val registrationUseCase = RegistrationUseCase(registrationRepository)
             val result = registrationUseCase.register(
                 RegistrationRequest(
@@ -91,12 +99,47 @@ class RegistrationViewModel(
                     password = password.value,
                     email = email.value,
                     birthDate = formatDateToISO8601(birthDate.value),
-                    gender = if (gender.value) 1 else 0
+                    gender = gender.intValue
                 )
             )
+            if (result is RegistrationResult.Success) {
+                getProfile()
+                tokenManager.saveToken(result.token)
+            }
             withContext(Dispatchers.Main) {
                 onResult(result)
             }
         }
+    }
+
+    private suspend fun getProfile() {
+        val apiService = createApiService(tokenManager.getToken())
+        val profileRepository = ApiProfileRepository(apiService)
+        val profileUseCase = ProfileUseCase(profileRepository)
+
+        when (val result = profileUseCase.getInfo()) {
+            is ApiResult.Success -> {
+                if (result.data != null) {
+                    cacheProfile(result.data)
+                }
+            }
+
+            is ApiResult.Unauthorized -> {
+                Log.d("ProfileViewModel", Constants.UNAUTHORIZED_ERROR)
+            }
+
+            is ApiResult.Error -> {
+                Log.d("ProfileViewModel", Constants.UNKNOWN_ERROR)
+            }
+        }
+    }
+
+    private suspend fun cacheProfile(profile: ProfileResponse) {
+        val profileDatabase = ProfileDatabase.getDatabase(
+            context = tokenManager.context
+        )
+        val profileDao = profileDatabase.profileDao()
+        val profileUseCase = CacheProfileUseCase(CacheProfileRepository(profileDao))
+        profileUseCase.cacheProfile(profile)
     }
 }

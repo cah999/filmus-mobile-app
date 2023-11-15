@@ -2,9 +2,9 @@ package com.example.filmus.ui.screens.main.carousel
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Composable
@@ -21,9 +21,12 @@ fun Carousel(
 ) {
     Box(
         modifier = Modifier
-            .width(360.dp)
+            .fillMaxWidth()
             .height(497.dp)
     ) {
+        if (movies.isEmpty()) {
+            return@Box
+        }
         HorizontalPager(state = pagerState) { page ->
             MoviePoster(movie = movies[page],
                 onClick = { navController.navigate("movie/${movies[page].id}") })

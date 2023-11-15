@@ -1,7 +1,6 @@
 package com.example.filmus
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -9,34 +8,26 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.filmus.domain.TokenManager
-import com.example.filmus.navigation.AppNavigation
-import com.example.filmus.navigation.BottomBar
-import com.example.filmus.navigation.Screen
-import com.example.filmus.navigation.TopBar
+import com.example.filmus.domain.network.ConnectionState
+import com.example.filmus.repository.TokenManager
+import com.example.filmus.repository.network.connectivityState
+import com.example.filmus.ui.navigation.AppNavigation
+import com.example.filmus.ui.navigation.BottomBar
+import com.example.filmus.ui.navigation.Screen
+import com.example.filmus.ui.navigation.TopBar
+import com.example.filmus.ui.screens.network.NoConnectionScreen
 import com.example.filmus.ui.theme.FilmusTheme
-import com.example.filmus.viewmodel.favorites.FavoritesViewModel
-import com.example.filmus.viewmodel.favorites.FavoritesViewModelFactory
-import com.example.filmus.viewmodel.login.LoginViewModel
-import com.example.filmus.viewmodel.login.LoginViewModelFactory
-import com.example.filmus.viewmodel.mainscreen.MainViewModel
-import com.example.filmus.viewmodel.mainscreen.MainViewModelFactory
-import com.example.filmus.viewmodel.movie.MovieViewModel
-import com.example.filmus.viewmodel.movie.MovieViewModelFactory
-import com.example.filmus.viewmodel.profile.ProfileViewModel
-import com.example.filmus.viewmodel.profile.ProfileViewModelFactory
 import com.example.filmus.viewmodel.registration.RegistrationViewModel
 import com.example.filmus.viewmodel.registration.RegistrationViewModelFactory
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -44,75 +35,51 @@ class MainActivity : ComponentActivity() {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Loading.route
             val tokenManager = TokenManager(this)
-            var startScreen by remember { mutableStateOf<Screen>(Screen.Loading) }
-            LaunchedEffect(true) {
-                val token = tokenManager.getToken()
-                startScreen = if (token != null) {
-                    Screen.Main
-                } else {
-                    Screen.Welcome
+            val connection by connectivityState()
+            val isConnected = connection === ConnectionState.Available
+            val registrationViewModel: RegistrationViewModel by viewModels(
+                factoryProducer = {
+                    RegistrationViewModelFactory(tokenManager)
                 }
-                isLoading = false
-            }
-            // не создавать view models в main activity
-            // чтобы view model создавал сам экран
-            val loginViewModel: LoginViewModel by viewModels {
-                LoginViewModelFactory(tokenManager)
-            }
-            val registrationViewModel: RegistrationViewModel by viewModels {
-                RegistrationViewModelFactory(tokenManager)
-            }
-            val mainViewModel: MainViewModel by viewModels {
-                MainViewModelFactory()
-            }
-            val favoritesViewModel: FavoritesViewModel by viewModels {
-                FavoritesViewModelFactory()
-            }
-            val profileViewModel: ProfileViewModel by viewModels {
-                ProfileViewModelFactory(tokenManager)
-            }
-            val movieViewModel: MovieViewModel by viewModels {
-                MovieViewModelFactory()
-            }
+            )
 
             FilmusTheme {
-                Scaffold(topBar = {
-                    when (currentRoute) {
-                        Screen.Login.route, Screen.Registration.route, Screen.RegistrationPwd.route -> {
-                            TopBar(navController = navController)
-                        }
-                        else -> {}
-                    }
-                }, bottomBar = {
-                    when (currentRoute) {
-                        Screen.Main.route, Screen.Favorite.route, Screen.Profile.route -> {
-                            BottomBar(navController = navController)
-                        }
+                Scaffold(
+                    containerColor = Color(0xFF1D1D1D),
+                    topBar = {
+                        when (currentRoute) {
+                            Screen.Login.route, Screen.Registration.route, Screen.RegistrationPwd.route -> {
+                                TopBar(navController = navController)
+                            }
 
-                        else -> {}
-                    }
-                }) {
+                            else -> {}
+                        }
+                    }, bottomBar = {
+                        when (currentRoute) {
+                            Screen.Main.route, Screen.Favorite.route, Screen.Profile.route -> {
+                                BottomBar(navController = navController)
+                            }
+
+                            else -> {}
+                        }
+                    }) {
                     Box(
                         modifier = Modifier
                             .padding(it)
                             .fillMaxSize()
                     ) {
-                        Log.d("MainActivity", "startScreen: $startScreen")
-                        AppNavigation(
-                            navController = navController,
-                            startScreen = startScreen,
-                            loginViewModel = loginViewModel,
-                            registrationViewModel = registrationViewModel,
-                            mainViewModel = mainViewModel,
-                            favoritesViewModel = favoritesViewModel,
-                            profileViewModel = profileViewModel,
-                            movieViewModel = movieViewModel
-                        )
+                        if (!isConnected) {
+                            NoConnectionScreen()
+                        } else {
+                            AppNavigation(
+                                navController = navController,
+                                registrationViewModel = registrationViewModel,
+                                tokenManager = tokenManager,
+                            )
+                        }
                     }
                 }
             }
         }
     }
-
-    private var isLoading by mutableStateOf(true)
 }

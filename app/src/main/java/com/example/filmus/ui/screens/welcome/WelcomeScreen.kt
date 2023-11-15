@@ -1,21 +1,22 @@
 package com.example.filmus.ui.screens.welcome
 
+import android.content.Context.VIBRATOR_MANAGER_SERVICE
+import android.os.VibrationEffect
+import android.os.VibratorManager
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -26,21 +27,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.filmus.R
-import com.example.filmus.navigation.Screen
+import com.example.filmus.common.Constants
+import com.example.filmus.ui.navigation.Screen
+
 
 @Composable
 fun WelcomeScreen(navController: NavHostController) {
+    val vibratorManager =
+        LocalContext.current.getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager
+    val vibrator = vibratorManager.defaultVibrator
+
     Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
     ) {
         Image(
             painter = painterResource(id = R.drawable.welcome_logo),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(35.dp)
+                .padding(top = 35.dp, bottom = 35.dp)
         )
 
         Text(
@@ -51,7 +58,8 @@ fun WelcomeScreen(navController: NavHostController) {
                 fontWeight = FontWeight(700),
                 color = Color(0xFFFFFFFF),
                 textAlign = TextAlign.Center,
-            )
+            ),
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -65,15 +73,24 @@ fun WelcomeScreen(navController: NavHostController) {
                 color = Color(0xFFFFFFFF),
 
                 textAlign = TextAlign.Center,
-            )
+            ),
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(35.dp))
 
         Button(
-            onClick = { navController.navigate(Screen.Registration.route) },
+            onClick = {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        Constants.VIBRATION_BUTTON_CLICK,
+                        VibrationEffect.DEFAULT_AMPLITUDE
+                    )
+                )
+                navController.navigate(Screen.Registration.route)
+            },
             modifier = Modifier
-                .width(328.dp)
+                .fillMaxWidth()
                 .height(42.dp),
 
             shape = RoundedCornerShape(size = 10.dp),
@@ -98,9 +115,17 @@ fun WelcomeScreen(navController: NavHostController) {
 
         Spacer(modifier = Modifier.height(15.dp))
         Button(
-            onClick = { navController.navigate(Screen.Login.route) },
+            onClick = {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        Constants.VIBRATION_BUTTON_CLICK,
+                        VibrationEffect.DEFAULT_AMPLITUDE
+                    )
+                )
+                navController.navigate(Screen.Login.route)
+            },
             modifier = Modifier
-                .width(328.dp)
+                .fillMaxWidth()
                 .height(42.dp),
 
             shape = RoundedCornerShape(size = 10.dp),
@@ -122,3 +147,4 @@ fun WelcomeScreen(navController: NavHostController) {
         }
     }
 }
+

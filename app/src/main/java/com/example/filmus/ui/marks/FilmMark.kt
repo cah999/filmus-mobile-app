@@ -3,13 +3,12 @@ package com.example.filmus.ui.marks
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -20,10 +19,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.filmus.R
+import java.util.Locale
 
 @Composable
-fun FilmMark(mark: Float) {
-    val (fontColor, markColor) = remember {
+fun FilmMark(
+    mark: Float,
+    modifier: Modifier = Modifier,
+    fontWeight: Int = 500,
+    alwaysFontColor: Long? = null
+) {
+    var (fontColor, markColor) = remember {
         when {
             (mark >= 0f && mark < 3f) -> Pair(0xFFFFFFFF, 0xFFE64646)
             (mark >= 3f && mark < 4f) -> Pair(0xFFFFFFFF, 0xFFF05C44)
@@ -34,24 +39,27 @@ fun FilmMark(mark: Float) {
             else -> Pair(0xFFE64646, 0xFFFFFFFF)
         }
     }
+    if (alwaysFontColor != null) {
+        fontColor = alwaysFontColor
+    }
 
-    val text = mark.toString()
+    val text = String.format(Locale.ENGLISH, "%.1f", mark)
 
     Box(
-        modifier = Modifier
-            .width(51.dp)
-            .height(26.dp)
-            .background(color = Color(markColor), shape = RoundedCornerShape(5.dp)),
+        modifier = modifier
+            .background(color = Color(markColor), shape = RoundedCornerShape(5.dp))
+            .fillMaxSize()
+            .wrapContentSize(align = Alignment.Center)
     ) {
         Text(
-            text = text, style = TextStyle(
+            text = text,
+            style = TextStyle(
                 fontSize = 15.sp,
                 fontFamily = FontFamily(Font(R.font.inter)),
-                fontWeight = FontWeight(500),
+                fontWeight = FontWeight(fontWeight),
                 color = Color(fontColor),
-            ), textAlign = TextAlign.Center, modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 2.dp)
+            ),
+            textAlign = TextAlign.Center
         )
     }
 

@@ -1,5 +1,7 @@
 package com.example.filmus.ui.fields
 
+import android.os.VibrationEffect
+import android.os.Vibrator
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,19 +33,20 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.filmus.R
+import com.example.filmus.common.Constants
 
 @Composable
 fun CustomTextField(
-    // todo const
-    textFieldValue: String = "",
+    textFieldValue: String = Constants.EMPTY,
     outlinedColor: Color = Color.Gray,
     containerColor: Color = Color.Transparent,
     onValueChange: (String) -> Unit,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     isPassword: Boolean,
     isPasswordVisible: MutableState<Boolean> = remember { mutableStateOf(!isPassword) },
+    vibrator: Vibrator
 
-    ) {
+) {
     BasicTextField(modifier = Modifier
         .background(
             color = containerColor, shape = RoundedCornerShape(8.dp)
@@ -53,7 +56,15 @@ fun CustomTextField(
         )
         .fillMaxWidth(),
         value = textFieldValue,
-        onValueChange = onValueChange,
+        onValueChange = {
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(
+                    Constants.VIBRATION_TYPING,
+                    VibrationEffect.DEFAULT_AMPLITUDE
+                )
+            )
+            onValueChange(it)
+        },
         textStyle = TextStyle(
             fontSize = 15.sp,
             fontFamily = FontFamily(Font(R.font.inter)),
