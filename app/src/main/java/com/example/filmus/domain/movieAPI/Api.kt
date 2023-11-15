@@ -3,7 +3,6 @@ package com.example.filmus.domain.movieAPI
 
 import android.annotation.SuppressLint
 import android.util.Base64
-import android.util.Log
 import com.example.filmus.common.Constants
 import okhttp3.Call
 import okhttp3.Callback
@@ -82,7 +81,6 @@ class Api {
                     val matchResult = regex.find(body)
                     if (matchResult != null) {
                         val link = matchResult.groups[1]?.value
-                        println(link)
 
                         continuation.resume(link)
                     } else {
@@ -130,8 +128,8 @@ class Api {
                     if (translations.isEmpty()) {
                         translations = listOf(Translation(110, "Оригинал"))
                     }
-                    val isSerial = soup.select("meta[property=og:type]").attr("content")
-                        .contains("tv_series")
+                    val isSerial =
+                        soup.select("meta[property=og:type]").attr("content").contains("tv_series")
 
                     continuation.resume(
                         ExMovie(
@@ -218,7 +216,6 @@ class Api {
             val temp = i.replace("\n", "") // Remove any newline characters from the Base64 string
             trashString = trashString.replace(temp, "")
         }
-
         val finalString = Base64.decode(trashString, Base64.NO_WRAP)
         return finalString.decodeToString()
     }
@@ -240,7 +237,6 @@ class Api {
         val url = HttpUrl.Builder().scheme(getScheme()).host(getHost()).addPathSegment("ajax")
             .addPathSegment("get_cdn_series").addPathSegment("")
             .addQueryParameter("t", System.currentTimeMillis().toString()).build()
-        Log.d("API", url.toString())
         val request = okhttp3.Request.Builder().url(url).post(
             form.build()
         ).build()
@@ -253,20 +249,20 @@ class Api {
                 response.use {
                     val body = response.body?.string()
                     if (body == null) {
-                        Log.e("API", "Empty response")
                         continuation.resume(emptyList())
                         return
                     }
                     val json = JSONObject(body)
 
                     if (!json.getBoolean("success")) {
-                        Log.e("API", json.getString("message"))
                         continuation.resume(emptyList())
                         return
                     }
 
-                    println("loadResolutions: $json")
-
+                    if (json.getString("url") == "false" || json.getString("url").isBlank()) {
+                        continuation.resume(emptyList())
+                        return
+                    }
                     val link = clearTrash(json.getString("url"))
                     val arr = link.split(",")
 
@@ -303,25 +299,14 @@ class Api {
 
     suspend fun loadSeasonsForTranslation(movieId: Int, translationId: Int): List<Season> =
         suspendCoroutine { continuation ->
-            val url = HttpUrl.Builder()
-                .scheme(getScheme())
-                .host(getHost())
-                .addPathSegment("ajax")
-                .addPathSegment("get_cdn_series")
-                .addPathSegment("")
-                .build()
+            val url = HttpUrl.Builder().scheme(getScheme()).host(getHost()).addPathSegment("ajax")
+                .addPathSegment("get_cdn_series").addPathSegment("").build()
 
-            val request = okhttp3.Request.Builder()
-                .url(url)
-                .post(
-                    FormBody.Builder()
-                        .add("id", movieId.toString())
-                        .add("translator_id", translationId.toString())
-                        .add("favs", "0")
-                        .add("action", "get_episodes")
-                        .build()
-                )
-                .build()
+            val request = okhttp3.Request.Builder().url(url).post(
+                FormBody.Builder().add("id", movieId.toString())
+                    .add("translator_id", translationId.toString()).add("favs", "0")
+                    .add("action", "get_episodes").build()
+            ).build()
 
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
@@ -332,14 +317,12 @@ class Api {
                     response.use {
                         val body = response.body?.string()
                         if (body == null) {
-                            Log.e("API", "Empty response")
                             continuation.resume(emptyList())
                             return
                         }
                         val json = JSONObject(body)
 
                         if (!json.getBoolean("success")) {
-                            Log.e("API", json.getString("message"))
                             continuation.resume(emptyList())
                             return
                         }
