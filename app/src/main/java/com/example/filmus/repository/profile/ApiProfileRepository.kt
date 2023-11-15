@@ -8,10 +8,11 @@ import com.example.filmus.domain.profile.ProfileResponse
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 
+
 class ApiProfileRepository(
     private val apiService: ApiService,
-) {
-    suspend fun getInfo(): ApiResult<ProfileResponse> {
+) : IApiProfileRepository {
+    override suspend fun getInfo(): ApiResult<ProfileResponse> {
         try {
             val response = apiService.getInfo()
             if (response.isSuccessful) {
@@ -28,7 +29,7 @@ class ApiProfileRepository(
         return ApiResult.Error(Constants.UNKNOWN_ERROR)
     }
 
-    suspend fun logout(): ApiResult<Nothing> {
+    override suspend fun logout(): ApiResult<Nothing> {
         try {
             val response = apiService.logout()
             if (response.isSuccessful) {
@@ -42,7 +43,7 @@ class ApiProfileRepository(
         return ApiResult.Error(Constants.UNKNOWN_ERROR)
     }
 
-    suspend fun updateInfo(data: ProfileResponse): ApiResult<Nothing> {
+    override suspend fun updateInfo(data: ProfileResponse): ApiResult<Nothing> {
         try {
             val profileRequestBody = MoshiProvider.profileRequestAdapter.toJson(data)
                 .toRequestBody("application/json".toMediaTypeOrNull())

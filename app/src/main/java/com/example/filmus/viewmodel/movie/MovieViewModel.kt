@@ -16,7 +16,7 @@ import com.example.filmus.domain.favorite.FavoritesUseCase
 import com.example.filmus.domain.movie.DetailedMovieResponse
 import com.example.filmus.domain.movie.MovieUseCase
 import com.example.filmus.domain.movie.ReviewRequest
-import com.example.filmus.domain.movieAPI.Api
+import com.example.filmus.repository.movie.watchMovie.Api
 import com.example.filmus.domain.movieAPI.ExMovie
 import com.example.filmus.domain.movieAPI.Season
 import com.example.filmus.domain.movieAPI.Stream

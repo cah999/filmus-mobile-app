@@ -5,10 +5,11 @@ import com.example.filmus.domain.api.ApiResult
 import com.example.filmus.domain.api.ApiService
 import com.example.filmus.domain.main.Movie
 
+
 class FavoritesRepository(
     private val apiService: ApiService
-) {
-    suspend fun getFavorites(): ApiResult<List<Movie>> {
+) : IFavoritesRepository {
+    override suspend fun getFavorites(): ApiResult<List<Movie>> {
         try {
             val response = apiService.getFavorites()
             return if (response.isSuccessful) {
@@ -32,7 +33,7 @@ class FavoritesRepository(
         }
     }
 
-    suspend fun addFavorite(movieID: String): ApiResult<Nothing> {
+    override suspend fun addFavorite(movieID: String): ApiResult<Nothing> {
         try {
             val response = apiService.addFavorite(movieID)
             return if (response.isSuccessful) {
@@ -55,7 +56,7 @@ class FavoritesRepository(
         }
     }
 
-    suspend fun removeFavorite(movieID: String): ApiResult<Nothing> {
+    override suspend fun removeFavorite(movieID: String): ApiResult<Nothing> {
         try {
             val response = apiService.removeFavorite(movieID)
             return if (response.isSuccessful) {

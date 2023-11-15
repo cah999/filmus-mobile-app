@@ -8,10 +8,11 @@ import com.example.filmus.domain.registration.register.RegistrationResult
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 
+
 class RegistrationRepository(
     private val apiService: ApiService
-) {
-    suspend fun register(data: RegistrationRequest): RegistrationResult {
+) : IRegistrationRepository {
+    override suspend fun register(data: RegistrationRequest): RegistrationResult {
         try {
             val registerRequestBody = MoshiProvider.registerRequestAdapter.toJson(data)
                 .toRequestBody("application/json".toMediaTypeOrNull())
